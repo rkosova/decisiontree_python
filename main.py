@@ -2,7 +2,7 @@ import pandas as pd
 import numpy as np
 
  
-def gini(classDistribution: dict[str, float]):
+def gini(classDistribution: dict[str, float]) -> float:
     """ Returns the Gini impurity of set
 
     Arguments:
