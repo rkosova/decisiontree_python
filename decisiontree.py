@@ -1,7 +1,23 @@
 import pandas as pd
 import numpy as np
 
- 
+class Tree:
+    # figure way out to store layers
+    def __init__(self, data: pd.DataFrame) -> None:
+        self.data = data
+        self.classDistribution = getClassDistribution(self.data)
+    
+    
+    def train(maxDepth: int, maxImpurity: float = 0) -> None:
+        pass
+
+
+class Node:
+    def __init__(self, nodeDescriptor: dict) -> None:
+        # maybe a lambda function to store the node condition
+        pass
+
+
 def gini(classDistribution: dict[str, float]) -> float:
     """ Returns the Gini impurity of set
 
