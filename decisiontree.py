@@ -8,13 +8,18 @@ class Tree:
         self.classDistribution = getClassDistribution(self.data)
     
     
-    def train(maxDepth: int, maxImpurity: float = 0) -> None:
-        pass
+    def train(self, maxDepth: int, maxImpurity: float = 0) -> None:
+        features = self.data.columns[:-1]
+
+        for feature in features:
+            uniqueFeatureValues = self.data[feature].unique()
+            uniqueFeatureValues.sort()
+            nodeConstructor(uniqueFeatureValues=uniqueFeatureValues)
+
 
 
 class Node:
     def __init__(self, nodeDescriptor: dict) -> None:
-        # maybe a lambda function to store the node condition
         pass
 
 
@@ -48,3 +53,5 @@ def getClassDistribution(labels: pd.Series) -> dict[str, float]:
     
     return classDistribution
 
+def nodeConstructor(uniqueFeatureValues: np.ndarray, maxImpurity: float = 0) -> Node:
+    return Node    
