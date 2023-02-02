@@ -4,3 +4,4 @@ dtree/
 # development resources
 dev/
 .vscode/
+.env
