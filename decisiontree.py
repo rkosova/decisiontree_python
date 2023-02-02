@@ -8,15 +8,44 @@ class Tree:
         self.classDistribution = getClassDistribution(self.data)
     
     
-    def train(self, maxDepth: int, maxImpurity: float = 0) -> None:
+    def train(self, maxDepth: int, maxImpurity: float = 0) -> dict:
         features = self.data.columns[:-1]
 
         for feature in features:
+            giniLeftSmallest = 1
+            giniRightSmallest = 1
             uniqueFeatureValues = self.data[feature].unique()
             uniqueFeatureValues.sort()
-            nodeConstructor(uniqueFeatureValues=uniqueFeatureValues)
 
+            for i in range(1, len(uniqueFeatureValues) - 1):
 
+                # values of labels of the data points with feature values to the left of the i-th unique feature value
+                labelsLeft = self.data[self.data[feature] < uniqueFeatureValues[i]].iloc[:, -1]
+
+                # values of labels of the data points with feature values to the right of the i-th unique feature value
+                labelsRight = self.data[self.data[feature] > uniqueFeatureValues[i]].iloc[:, -1]
+                
+                # gini values of the i-th unique feature value sliced labels sets 
+                currentGiniLeft = gini(getClassDistribution(labelsLeft))
+                currentGiniRight = gini(getClassDistribution(labelsRight))
+
+                giniLeftSmallest = currentGiniLeft if currentGiniLeft < giniLeftSmallest else giniLeftSmallest
+                giniRightSmallest = currentGiniRight if currentGiniRight < giniRightSmallest else giniRightSmallest
+
+                if giniLeftSmallest <= maxImpurity or giniRightSmallest <= maxImpurity:
+                    return (
+                        {
+                            "feature": feature,
+                            "filter": lambda x: x < uniqueFeatureValues[i],
+                            "value": uniqueFeatureValues[i]
+                        }
+                    ) if giniLeftSmallest < giniRightSmallest else (
+                        {
+                            "feature": feature,
+                            "filter": lambda x: x > uniqueFeatureValues[i],
+                            "value": uniqueFeatureValues[i]
+                        }
+                    )
 
 class Node:
     def __init__(self, nodeDescriptor: dict) -> None:
@@ -38,9 +67,10 @@ def gini(classDistribution: dict[str, float]) -> float:
 
 
 def getClassDistribution(labels: pd.Series) -> dict[str, float]:
-    """ Returns a dictionary with the unique labels as keys and their rational distribution as the value
+    """ ## Returns
+    Dictionary with the unique labels as keys and their rational distribution as the value
     
-    Arguments:
+    ## Arguments
     labels: pandas Series, label column from data
     """
     classDistribution: dict[str, float] = {}
@@ -53,5 +83,16 @@ def getClassDistribution(labels: pd.Series) -> dict[str, float]:
     
     return classDistribution
 
-def nodeConstructor(uniqueFeatureValues: np.ndarray, maxImpurity: float = 0) -> Node:
-    return Node    
+
+# def nodeConstructor(uniqueFeatureValues: np.ndarray, data: pd.DataFrame, maxImpurity: float = 0) -> Node:
+#     """## Returns
+#     Node 
+    
+#     """
+#     giniLeftSmallest = 1
+#     giniRightSmallest = 1
+
+#     for i in range(1, len(uniqueFeatureValues) - 1):
+#         labelsLeft = data[data[feat]]
+#     return Node    
+ 
