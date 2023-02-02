@@ -5,3 +5,6 @@ dtree/
 dev/
 .vscode/
 .env
+
+# cache
+src/decisiontree/__pycache__/
