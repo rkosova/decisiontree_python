@@ -83,16 +83,3 @@ def getClassDistribution(labels: pd.Series) -> dict[str, float]:
     
     return classDistribution
 
-
-# def nodeConstructor(uniqueFeatureValues: np.ndarray, data: pd.DataFrame, maxImpurity: float = 0) -> Node:
-#     """## Returns
-#     Node 
-    
-#     """
-#     giniLeftSmallest = 1
-#     giniRightSmallest = 1
-
-#     for i in range(1, len(uniqueFeatureValues) - 1):
-#         labelsLeft = data[data[feat]]
-#     return Node    
- 
