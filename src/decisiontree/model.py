@@ -8,9 +8,8 @@ class Tree:
         self.classDistribution = getClassDistribution(self.data)
     
     
-    def train(self, maxDepth: int, maxImpurity: float = 0) -> dict:
+    def train(self, maxDepth: int = None, maxImpurity: float = 0) -> dict:
         features = self.data.columns[:-1]
-
         for feature in features:
             giniLeftSmallest = 1
             giniRightSmallest = 1
