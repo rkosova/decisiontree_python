@@ -2,6 +2,8 @@ import pandas as pd
 import numpy as np
 
 class Tree:
+
+    
     # figure way out to store layers
     def __init__(self, data: pd.DataFrame) -> None:
         self.data = data
@@ -9,7 +11,9 @@ class Tree:
     
     
     def train(self, maxDepth: int = None, maxImpurity: float = 0) -> dict:
-        features = self.data.columns[:-1]
+        featuresAndImpurity = {}
+        [featuresAndImpurity.update({key, None}) for key in self.data.columns[:-1]]
+        features = featuresAndImpurity.keys()
         for feature in features:
             giniLeftSmallest = 1
             giniRightSmallest = 1
@@ -19,10 +23,10 @@ class Tree:
             for i in range(1, len(uniqueFeatureValues) - 1):
 
                 # values of labels of the data points with feature values to the left of the i-th unique feature value
-                labelsLeft = self.data[self.data[feature] < uniqueFeatureValues[i]].iloc[:, -1]
+                labelsLeft = self.data[self.data[feature] <= uniqueFeatureValues[i]].iloc[:, -1]
 
                 # values of labels of the data points with feature values to the right of the i-th unique feature value
-                labelsRight = self.data[self.data[feature] > uniqueFeatureValues[i]].iloc[:, -1]
+                labelsRight = self.data[self.data[feature] >= uniqueFeatureValues[i]].iloc[:, -1]
                 
                 # gini values of the i-th unique feature value sliced labels sets 
                 currentGiniLeft = gini(getClassDistribution(labelsLeft))
@@ -31,24 +35,30 @@ class Tree:
                 giniLeftSmallest = currentGiniLeft if currentGiniLeft < giniLeftSmallest else giniLeftSmallest
                 giniRightSmallest = currentGiniRight if currentGiniRight < giniRightSmallest else giniRightSmallest
 
-                if giniLeftSmallest <= maxImpurity or giniRightSmallest <= maxImpurity:
-                    return (
-                        {
-                            "feature": feature,
-                            "filter": lambda x: x < uniqueFeatureValues[i],
-                            "value": uniqueFeatureValues[i]
-                        }
-                    ) if giniLeftSmallest < giniRightSmallest else (
-                        {
-                            "feature": feature,
-                            "filter": lambda x: x > uniqueFeatureValues[i],
-                            "value": uniqueFeatureValues[i]
-                        }
-                    )
+                # if giniLeftSmallest <= maxImpurity or giniRightSmallest <= maxImpurity:
+                #     return (
+                #         {
+                #             "feature": feature,
+                #             "filter": lambda x: x < uniqueFeatureValues[i],
+                #             "value": uniqueFeatureValues[i]
+                #         }
+                #     ) if giniLeftSmallest < giniRightSmallest else (
+                #         {
+                #             "feature": feature,
+                #             "filter": lambda x: x > uniqueFeatureValues[i],
+                #             "value": uniqueFeatureValues[i]
+                #         }
+                #     )
+                
+            featuresAndImpurity[feature] = (giniLeftSmallest if giniLeftSmallest < giniRightSmallest else giniRightSmallest)
+
+        return featuresAndImpurity 
 
 class Node:
     def __init__(self, nodeDescriptor: dict) -> None:
-        pass
+        self.feature = nodeDescriptor['feature']
+        self.filter = nodeDescriptor['filter']
+        self.value = nodeDescriptor['value']
 
 
 def gini(classDistribution: dict[str, float]) -> float:
