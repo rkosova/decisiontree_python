@@ -12,11 +12,26 @@ class Tree:
     
     def train(self, maxDepth: int = None, maxImpurity: float = 0) -> dict:
         featuresAndImpurity = {}
-        [featuresAndImpurity.update({key, None}) for key in self.data.columns[:-1]]
+        [featuresAndImpurity.update({key: None}) for key in self.data.columns[:-1]]
         features = featuresAndImpurity.keys()
         for feature in features:
-            giniLeftSmallest = 1
-            giniRightSmallest = 1
+            giniLeftSmallest = (
+                            {
+                                "gini": 1,
+                                "feature": None,
+                                "filter": None,
+                                "value": None
+                            }
+            )
+
+            giniRightSmallest = (
+                            {
+                                "gini": 1,
+                                "feature": None,
+                                "filter": None,
+                                "value": None
+                            }
+            )
             uniqueFeatureValues = self.data[feature].unique()
             uniqueFeatureValues.sort()
 
@@ -32,8 +47,18 @@ class Tree:
                 currentGiniLeft = gini(getClassDistribution(labelsLeft))
                 currentGiniRight = gini(getClassDistribution(labelsRight))
 
-                giniLeftSmallest = currentGiniLeft if currentGiniLeft < giniLeftSmallest else giniLeftSmallest
-                giniRightSmallest = currentGiniRight if currentGiniRight < giniRightSmallest else giniRightSmallest
+                if currentGiniLeft < giniLeftSmallest['gini']:
+                    giniLeftSmallest['gini'] = currentGiniLeft
+                    giniLeftSmallest['feature'] = feature
+                    giniLeftSmallest['filter'] = lambda x: x <= uniqueFeatureValues[i]
+                    giniLeftSmallest['value'] = uniqueFeatureValues[i]
+                
+                if currentGiniRight < giniRightSmallest['gini']:
+                    giniRightSmallest['gini'] = currentGiniRight
+                    giniRightSmallest['feature'] = feature
+                    giniRightSmallest['filter'] = lambda x: x >= uniqueFeatureValues[i]
+                    giniRightSmallest['value'] = uniqueFeatureValues[i]
+
 
                 # if giniLeftSmallest <= maxImpurity or giniRightSmallest <= maxImpurity:
                 #     return (
@@ -50,7 +75,7 @@ class Tree:
                 #         }
                 #     )
                 
-            featuresAndImpurity[feature] = (giniLeftSmallest if giniLeftSmallest < giniRightSmallest else giniRightSmallest)
+            featuresAndImpurity[feature] = (giniLeftSmallest if giniLeftSmallest['gini'] < giniRightSmallest['gini'] else giniRightSmallest)
 
         return featuresAndImpurity 
 
