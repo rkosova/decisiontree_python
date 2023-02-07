@@ -20,7 +20,8 @@ class Tree:
                                 "gini": 1,
                                 "feature": None,
                                 "filter": None,
-                                "value": None
+                                "value": None,
+                                "direction": "left"
                             }
             )
 
@@ -29,7 +30,8 @@ class Tree:
                                 "gini": 1,
                                 "feature": None,
                                 "filter": None,
-                                "value": None
+                                "value": None,
+                                "direction": "right"
                             }
             )
             uniqueFeatureValues = self.data[feature].unique()
@@ -50,17 +52,20 @@ class Tree:
                 if currentGiniLeft < giniLeftSmallest['gini']:
                     giniLeftSmallest['gini'] = currentGiniLeft
                     giniLeftSmallest['feature'] = feature
-                    giniLeftSmallest['filter'] = lambda x: x <= uniqueFeatureValues[i]
+                    giniLeftSmallest['filter'] =  makeClosure(uniqueFeatureValues[i], giniLeftSmallest['direction'])
                     giniLeftSmallest['value'] = uniqueFeatureValues[i]
+
                 
-                if currentGiniRight < giniRightSmallest['gini']:
+                if currentGiniRight <  giniRightSmallest['gini']:
                     giniRightSmallest['gini'] = currentGiniRight
                     giniRightSmallest['feature'] = feature
-                    giniRightSmallest['filter'] = lambda x: x >= uniqueFeatureValues[i]
+                    giniRightSmallest['filter'] = makeClosure(uniqueFeatureValues[i], giniRightSmallest['direction']) 
                     giniRightSmallest['value'] = uniqueFeatureValues[i]
 
 
-                # if giniLeftSmallest <= maxImpurity or giniRightSmallest <= maxImpurity:
+                if giniLeftSmallest['gini'] <= maxImpurity or giniRightSmallest['gini'] <= maxImpurity:
+                    return giniLeftSmallest if (giniLeftSmallest['gini'] < giniRightSmallest['gini']) else giniRightSmallest
+    
                 #     return (
                 #         {
                 #             "feature": feature,
@@ -117,3 +122,6 @@ def getClassDistribution(labels: pd.Series) -> dict[str, float]:
     
     return classDistribution
 
+
+def makeClosure(uniqueFeatureValue, direction):
+    return (lambda x: x <= uniqueFeatureValue) if direction == "left" else (lambda x: x >= uniqueFeatureValue)
