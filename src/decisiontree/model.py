@@ -65,24 +65,22 @@ class Tree:
 
                 if giniLeftSmallest['gini'] <= maxImpurity or giniRightSmallest['gini'] <= maxImpurity:
                     return giniLeftSmallest if (giniLeftSmallest['gini'] < giniRightSmallest['gini']) else giniRightSmallest
-    
-                #     return (
-                #         {
-                #             "feature": feature,
-                #             "filter": lambda x: x < uniqueFeatureValues[i],
-                #             "value": uniqueFeatureValues[i]
-                #         }
-                #     ) if giniLeftSmallest < giniRightSmallest else (
-                #         {
-                #             "feature": feature,
-                #             "filter": lambda x: x > uniqueFeatureValues[i],
-                #             "value": uniqueFeatureValues[i]
-                #         }
-                #     )
                 
             featuresAndImpurity[feature] = (giniLeftSmallest if giniLeftSmallest['gini'] < giniRightSmallest['gini'] else giniRightSmallest)
 
-        return featuresAndImpurity 
+        _smallest = None
+        for i in featuresAndImpurity:
+            if not _smallest:
+                _smallest = featuresAndImpurity[i]
+            else:
+                _smallest = _smallest if _smallest['gini'] < featuresAndImpurity[i]['gini'] else featuresAndImpurity[i]
+
+        # for i in featuresAndImpurity:
+        #     print(featuresAndImpurity[i])
+        #     print(f"For feature {featuresAndImpurity[i]['feature']}, the best available Gini is {featuresAndImpurity[i]['gini']} split at {featuresAndImpurity[i]['value']}: ")
+        #     print("====" * 10)
+
+        return _smallest
 
 class Node:
     def __init__(self, nodeDescriptor: dict) -> None:
