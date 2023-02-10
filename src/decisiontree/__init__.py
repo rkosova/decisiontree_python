@@ -1,1 +1,1 @@
-from .model import Tree
+from .model import Tree, Node
