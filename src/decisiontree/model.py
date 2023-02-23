@@ -14,122 +14,123 @@ class Tree:
         layers = 0
 
         while layers < maxDepth:
-            # so it all stays within one loop maybe provide a function for traversing down a branch until 
-            # the n-th node is reached and a function to append to the n-th node of a branch
+            self.firstLayer = self.constructLayer()
             layers += 1
     
-    def constructLayer(self, maxImpurity: float = 0):
+    # def constructLayer(self, maxImpurity: float = 0):
 
-        #todo: only internal nodes
-        featuresAndImpurity = {}
-        [featuresAndImpurity.update({key: None}) for key in self.data.columns[:-1]]
+    #     #todo: change name and structure to reflect only internal nodes being used 
+    #     interiorNodes = []
+    #     leaves = [] 
 
-        leaves = [] 
+    #     features = self.data.columns[:-1]
+    #     for feature in features:
 
-        features = featuresAndImpurity.keys()
-        for feature in features:
-            giniLeftSmallest = Node(None, 1, None, None) 
+    #         giniLeftSmallest = Node(None, 1, None, None) 
 
-            giniRightSmallest = Node(None, 1, None, None)
+    #         giniRightSmallest = Node(None, 1, None, None)
 
 
-            uniqueFeatureValues = self.data[feature].unique()
-            uniqueFeatureValues.sort()
+    #         uniqueFeatureValues = self.data[feature].unique()
+    #         uniqueFeatureValues.sort()
 
-            # print(feature, uniqueFeatureValues)
+    #         # print(feature, uniqueFeatureValues)
 
-            for i in range(1, len(uniqueFeatureValues) - 1):
+    #         for i in range(1, len(uniqueFeatureValues) - 1):
 
-                # values of labels of the data points with feature values to the left of the i-th unique feature value
-                labelsLeft = self.data[self.data[feature] <= uniqueFeatureValues[i]].iloc[:, -1]
+    #             # values of labels of the data points with feature values to the left of the i-th unique feature value
+    #             labelsLeft = self.data[self.data[feature] <= uniqueFeatureValues[i]].iloc[:, -1]
 
-                # values of labels of the data points with feature values to the right of the i-th unique feature value
-                labelsRight = self.data[self.data[feature] >= uniqueFeatureValues[i]].iloc[:, -1]
+    #             # values of labels of the data points with feature values to the right of the i-th unique feature value
+    #             labelsRight = self.data[self.data[feature] >= uniqueFeatureValues[i]].iloc[:, -1]
                 
-                # gini values of the i-th unique feature value sliced labels sets 
-                currentGiniLeft = gini(getClassDistribution(labelsLeft))
-                currentGiniRight = gini(getClassDistribution(labelsRight))
+    #             # gini values of the i-th unique feature value sliced labels sets 
+    #             currentGiniLeft = gini(getClassDistribution(labelsLeft))
+    #             currentGiniRight = gini(getClassDistribution(labelsRight))
 
-
-                # used to find the smallest gini value of feature for internal (non-leaf node)
-                if currentGiniLeft <= giniLeftSmallest.impurity:
-                    giniLeftSmallest.impurity = currentGiniLeft
-                    giniLeftSmallest.feature = feature
-                    giniLeftSmallest.direction =  'left'
-                    giniLeftSmallest.value = uniqueFeatureValues[i]
-
-                
-                if currentGiniRight <=  giniRightSmallest.impurity:
-                    giniRightSmallest.impurity = currentGiniRight
-                    giniRightSmallest.feature = feature
-                    giniRightSmallest.direction = 'right'
-                    giniRightSmallest.value = uniqueFeatureValues[i]
-
-                # used to construct the leaves of the feature 
-                if currentGiniLeft <= maxImpurity or currentGiniRight <= maxImpurity:
-                    # print(uniqueFeatureValues[i])
-
-                    leaf = (Node(feature, currentGiniLeft, uniqueFeatureValues[i], 'left') 
-                    if (currentGiniLeft < currentGiniRight)
-                    else Node(feature, currentGiniRight, uniqueFeatureValues[i], 'right'))
+    #             # used to construct the leaves of the feature 
+    #             if currentGiniLeft <= maxImpurity or currentGiniRight <= maxImpurity:
+    #                 # print(uniqueFeatureValues[i])
+    #                 if currentGiniLeft < currentGiniRight:
+    #                     leaf = Leaf(feature, currentGiniLeft, uniqueFeatureValues[i], 'left')
+    #                 else:
+    #                     leaf = Leaf(feature, currentGiniRight, uniqueFeatureValues[i], 'right')
                     
-                    leaves.append(leaf) 
+    #                 leaves.append(leaf) 
 
-            # todo: only internal nodes   
-            featuresAndImpurity[feature] = (giniLeftSmallest if giniLeftSmallest.impurity < giniRightSmallest.impurity else giniRightSmallest)
+    #                 continue
 
-        # _smallest = None
-        # for i in featuresAndImpurity:
-        #     if not _smallest:
-        #         _smallest = featuresAndImpurity[i]
-        #     else:
-        #         _smallest = _smallest if _smallest['gini'] < featuresAndImpurity[i]['gini'] else featuresAndImpurity[i]
+    #             # used to find the smallest gini value of feature for internal (non-leaf node)
+    #             if currentGiniLeft <= giniLeftSmallest.impurity:
+    #                 giniLeftSmallest.impurity = currentGiniLeft
+    #                 giniLeftSmallest.feature = feature
+    #                 giniLeftSmallest.direction = 'left'
+    #                 giniLeftSmallest.value = uniqueFeatureValues[i]
 
-        # for i in featuresAndImpurity:
-        #     print(featuresAndImpurity[i])
-        #     print(f"For feature {featuresAndImpurity[i]['feature']}, the best available Gini is {featuresAndImpurity[i]['gini']} split at {featuresAndImpurity[i]['value']}: ")
-        #     print("====" * 10)
+                
+    #             if currentGiniRight <=  giniRightSmallest.impurity:
+    #                 giniRightSmallest.impurity = currentGiniRight
+    #                 giniRightSmallest.feature = feature
+    #                 giniRightSmallest.direction = 'right'
+    #                 giniRightSmallest.value = uniqueFeatureValues[i]
 
-        leaves_ = []
+                
+    #         # todo: change name and structure to reflect only internal nodes being used 
+    #         interiorNodes.append(giniLeftSmallest if giniLeftSmallest.impurity < giniRightSmallest.impurity else giniRightSmallest)
+    #     # _smallest = None
+    #     # for i in featuresAndImpurity:
+    #     #     if not _smallest:
+    #     #         _smallest = featuresAndImpurity[i]
+    #     #     else:
+    #     #         _smallest = _smallest if _smallest['gini'] < featuresAndImpurity[i]['gini'] else featuresAndImpurity[i]
 
-        # https://stackoverflow.com/questions/10305762/best-method-for-changing-a-list-while-iterating-over-it
-        for i in range(len(leaves)):
-            for j in range(len(leaves)):
-                if leaves[i] != leaves[j] and leaves[i] and leaves[j] and leaves[i].feature == leaves[j].feature and leaves[i].direction == leaves[j].direction:
-                    if leaves[i].direction == 'left':
-                        if leaves[i].value > leaves[j].value:
-                            leaves[j] = None
-                        else:
-                            leaves[i] = None
-                    else:
-                        if leaves[i].value > leaves[j].value:
-                            leaves[i] = None
-                        else:
-                            leaves[j] = None
+    #     # for i in featuresAndImpurity:
+    #     #     print(featuresAndImpurity[i])
+    #     #     print(f"For feature {featuresAndImpurity[i]['feature']}, the best available Gini is {featuresAndImpurity[i]['gini']} split at {featuresAndImpurity[i]['value']}: ")
+    #     #     print("====" * 10)
+
+
+    #     # https://stackoverflow.com/questions/10305762/best-method-for-changing-a-list-while-iterating-over-it
+    #     for i in range(len(leaves)):
+    #         for j in range(len(leaves)):
+    #             if leaves[i] != leaves[j] and leaves[i] and leaves[j] and leaves[i].feature == leaves[j].feature and leaves[i].direction == leaves[j].direction:
+    #                 if leaves[i].direction == 'left':
+    #                     if leaves[i].value > leaves[j].value:
+    #                         leaves[j] = None
+    #                     else:
+    #                         leaves[i] = None
+    #                 else:
+    #                     if leaves[i].value > leaves[j].value:
+    #                         leaves[i] = None
+    #                     else:
+    #                         leaves[j] = None
                         
-            
-        # if not self.firstLayer:
-        return [leaf for leaf in leaves if leaf]
-        # train could be called for each child node for every layer  
+    #     leaves = [leaf for leaf in leaves if leaf]
+    #     [leaves.append(x) for x in interiorNodes]
+    #     # if not self.firstLayer:
+    #     return leaves
+    #     # train could be called for each child node for every layer  
 
         
 
-class Node:
+class Node: # conditional node
     # implement Node as such that it has list of children nodes
     # think up how to traverse tree and add to each branch, i.e. parallel or one branch at a time, make pros and cons
-    def __init__(self, feature: str | int, impurity: float, featureValue: int | float, direction: str) -> None:
-        self.feature = feature
-        self.impurity = impurity
-        self.direction = direction
-        self.value = featureValue
+    def __init__(self, feautre: str, left: int | float, right: int | float) -> None:
+        self.feature = feautre
+        self.left = left
+        self.right = right
 
 
-    def evaluate(self, data):
-        if self.direction == 'right':
-            return data >= self.value
-        else:
-            return data <= self.value
+    def string(self):
+        return f"Feature: {self.feature} | Left: < {self.left} | Right: > {self.right}"
 
+
+
+class Leaf:
+    def __init__(self, label) -> None:
+        self.label = label
+        
 
 def gini(classDistribution: dict[str, float]) -> float:
     """ Returns the Gini impurity of set
