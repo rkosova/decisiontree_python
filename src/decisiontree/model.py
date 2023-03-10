@@ -8,12 +8,12 @@ class Tree:
         # maxImpurity: float = 0 add to function that determines whether a node is a leaf or not 
 
 
-    def findSplit(self, minLabels: float = 0):
+    def findSplit(self, minLabels: float = 0) -> dict:
         features = self.data.columns[:-1]
 
         giniSmallest = {
-                "left": {"gini": 1, "feature": None, "value": None},
-                "right": {"gini": 1, "feature": None, "value": None}
+                "left": {"gini": 1, "feature": None, "value": None, "labels": 0},
+                "right": {"gini": 1, "feature": None, "value": None, "labels": 0}
         }
 
         for feature in features:
@@ -30,31 +30,32 @@ class Tree:
                 labelsRight = self.data[self.data[feature] >= uniqueFeatureValues[i]].iloc[:, -1]
 
 
-                if feature == 6 and i == 2:
-                    pass 
-
                 # gini values of the i-th unique feature value sliced labels sets 
                 currentGiniLeft = gini(getClassDistribution(labelsLeft))
                 currentGiniRight = gini(getClassDistribution(labelsRight))
 
 
                 if currentGiniLeft < giniSmallest["left"]["gini"]:
-                    if labelsLeft.count() >= minLabels:
+                    if labelsLeft.count() >= minLabels: # labelsLeft.count() >= giniSmallest["left"]["labels"]: find way to implement
                         giniSmallest["left"]["gini"] = currentGiniLeft
                         giniSmallest["left"]["feature"] = feature
                         giniSmallest["left"]["value"] = uniqueFeatureValues[i]
+                        giniSmallest["left"]["labels"] = labelsLeft.count()
 
 
                 if currentGiniRight < giniSmallest["right"]["gini"]:
-                    if labelsRight.count() >= minLabels:
+                    if labelsRight.count() >= minLabels: # and labelsRight.count() >= giniSmallest["right"]["labels"]: find way to implement
                         giniSmallest["right"]["gini"] = currentGiniRight
                         giniSmallest["right"]["feature"] = feature
                         giniSmallest["right"]["value"] = uniqueFeatureValues[i]
+                        giniSmallest["right"]["labels"] = labelsRight.count()
 
 
-
-        # print()
-        return giniSmallest
+        for i in range(2):
+            if giniSmallest["left"]["gini"] < giniSmallest["right"]["gini"]:
+                return {"left": giniSmallest["left"]}
+            else:
+                return {"right": giniSmallest["right"]}
                 
 class Node:
     def __init__(self) -> None:
