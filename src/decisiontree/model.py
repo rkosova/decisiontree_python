@@ -16,12 +16,18 @@ class Tree:
 
 
     def train(self, data, depth = 0):
+        print(f"\rDepth: { depth }/{ self.maxDepth }\t{ (depth/self.maxDepth) * 100:.1f}% |{ (int(20 * ((depth/self.maxDepth)))) * '='}", end=f"\r")
+
         dataImpurity = gini(getClassDistribution(data.iloc[:, -1]))
-        # print(dataImpurity)
-        if depth == self.maxDepth or dataImpurity <= self.maxImpurity:
+        split = self.findSplit(data)
+
+        # Stopping Criterion:
+        # Max depth has ben reached
+        # Split impurity is below max
+        # Data cannot be split anymore and still respect max impurity and min label members
+        if depth == self.maxDepth or dataImpurity <= self.maxImpurity or split[list(split.keys())[0]]["feature"] == None:
             return Node(None, None, None, data.iloc[:, -1].mode()[0])
         
-        split = self.findSplit(data)
 
         leftData, rightData = self.splitData(split, data)
 
@@ -98,7 +104,10 @@ class Tree:
             leftData = data[data[split["left"]["feature"]] <= split["left"]["value"]]
             rightData = data[data[split["left"]["feature"]] > split["left"]["value"]]
         else:
-            leftData = data[data[split["right"]["feature"]] >= split["right"]["value"]] # this way the complement is always on the right
+            try:
+                leftData = data[data[split["right"]["feature"]] >= split["right"]["value"]] # this way the complement is always on the right
+            except KeyError:
+                print(split)
             rightData = data[data[split["right"]["feature"]] < split["right"]["value"]]
 
         return leftData, rightData
