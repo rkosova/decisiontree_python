@@ -12,22 +12,25 @@ class Tree:
         self.minLabels = minLabels
         self.maxImpurity = maxImpurity
 
-        split = self.findSplit(self.data)
-        leftData, rightData = self.splitData(split, self.data)
-
-        print(leftData.head(), rightData.head())
-
+        self.root = self.train(self.data)
 
 
     def train(self, data, depth = 0):
-        dataImpurity = gini(getClassDistribution(data))
-
+        dataImpurity = gini(getClassDistribution(data.iloc[:, -1]))
+        # print(dataImpurity)
         if depth == self.maxDepth or dataImpurity <= self.maxImpurity:
             return Node(None, None, None, data.iloc[:, -1].mode()[0])
         
         split = self.findSplit(data)
 
         leftData, rightData = self.splitData(split, data)
+
+        node = Node(feature=split[list(split.keys())[0]]["feature"], value=split[list(split.keys())[0]]["value"], optimalSplitDirection=list(split.keys())[0])
+
+        node.left = self.train(leftData, depth + 1)
+        node.right = self.train(rightData, depth + 1)
+
+        return node
 
 
     def findSplit(self, data) -> dict:
@@ -80,23 +83,34 @@ class Tree:
 
 
     def splitData(self, split, data):
-        
         if list(split.keys())[0] == "left":
             leftData = data[data[split["left"]["feature"]] <= split["left"]["value"]]
             rightData = data[data[split["left"]["feature"]] > split["left"]["value"]]
         else:
-            leftData = data[data[split["right"]["feature"]] < split["right"]["value"]]
-            rightData = data[data[split["right"]["feature"]] >= split["right"]["value"]]
+            leftData = data[data[split["right"]["feature"]] >= split["right"]["value"]] # this way the complement is always on the right
+            rightData = data[data[split["right"]["feature"]] < split["right"]["value"]]
 
         return leftData, rightData
+    
+
+    def printTree(self, node, indent = ''):
+        if node.left == None and node.right == None:
+            print(f"{indent}predict {node.value}")
+            return
+        
+        print(f"{indent}{node.feature} {'<=' if node.optimalSplitDirection == 'left' else '>='}{node.value}")
+        self.printTree(node.left, indent + '----')
+        self.printTree(node.right, indent + '----')
+    
            
 
 class Node:
-    def __init__(self, left, right, feature, value) -> None:
+    def __init__(self, left = None, right = None, feature = None, value = None, optimalSplitDirection = None) -> None:
         self.left = left
         self.right = right
         self.feature = feature
         self.value = value
+        self.optimalSplitDirection = optimalSplitDirection
         
 
 def gini(classDistribution: dict[str, float]) -> float:
