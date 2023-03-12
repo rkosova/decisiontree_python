@@ -18,9 +18,9 @@ This decision tree model is trained when instantiated via the Tree class. It tak
 
 `maxDepth` - Maximum depth of the tree.
 
-'minLabels' - Minimum number of label members for a leaf split.
+`minLabels` - Minimum number of label members for a leaf split.
 
-'maxImpurity' - Maximum acceptable impurity for a leaf split.  
+`maxImpurity` - Maximum acceptable impurity for a leaf split.  
   
 ```Python
 from decisiontree import Tree
