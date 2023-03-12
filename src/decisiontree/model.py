@@ -1,12 +1,12 @@
 import pandas as pd
 
 class Tree:
-    def __init__(self, data: pd.DataFrame, maxDepth: int = 35, minLabels: int = 10, maxImpurity: float = 0.1) -> None:
+    def __init__(self, X_train: pd.DataFrame, y_train: pd.Series, maxDepth: int = 35, minLabels: int = 10, maxImpurity: float = 0.1) -> None:
 
         #data
-        self.data = data
-        self.classDistribution = getClassDistribution(self.data)
-
+        self.X_train = X_train
+        self.y_train = y_train
+        self.data = pd.concat((X_train, y_train), axis=1)
         # hyperparameters
         self.maxDepth = maxDepth
         self.minLabels = minLabels
@@ -80,6 +80,17 @@ class Tree:
             return {"left": giniSmallest["left"]}
         else:
             return {"right": giniSmallest["right"]}
+
+
+
+    def predict(self, X_test: pd.DataFrame):
+        # for each data point, make a prediction and append to resulting series that is then returned to user
+        # uses another recursive function
+
+        
+        
+        return
+        
 
 
     def splitData(self, split, data):
