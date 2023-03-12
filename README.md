@@ -62,4 +62,6 @@ print(f"Accuracy: {accuracy}")
 
 This project is licensed under the MIT License - see the LICENSE file for details.
 
+## Note
+
 This project is not meant to be a better tool than what's already out there. This project was a way for me to learn more about machine learning models in the back-end
