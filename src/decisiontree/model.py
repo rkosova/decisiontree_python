@@ -12,14 +12,21 @@ class Tree:
         self.minLabels = minLabels
         self.maxImpurity = maxImpurity
 
-        self.root = self.train(self.data)
+        self.depth = 0
+
+        self.root = self._train(self.data)
+
+        if self.depth < self.maxDepth:
+            print("\nNOTE: The training terminated 'prematurely' (i.e., before reaching set max depth) due to one of the other stopping criterion \n",
+                  "being met. Probably due to there not being any splits that meet the max acceptable impurity while still satisfying the min label members.")
 
 
-    def train(self, data, depth = 0):
-        print(f"\rDepth: { depth }/{ self.maxDepth }\t{ (depth/self.maxDepth) * 100:.1f}% |{ (int(20 * ((depth/self.maxDepth)))) * '='}", end=f"\r")
+    def _train(self, data, depth = 0):
+        self.depth = depth if depth > self.depth else self.depth + 0
+        print(f"\rDepth: { self.depth }/{ self.maxDepth }\t{ (self.depth/self.maxDepth) * 100:.1f}% |{ (int(20 * ((self.depth/self.maxDepth)))) * '='}{ (20 - int(20 * (self.depth/self.maxDepth))) * '-' }|", end="")
 
         dataImpurity = gini(getClassDistribution(data.iloc[:, -1]))
-        split = self.findSplit(data)
+        split = self._findSplit(data)
 
         # Stopping Criterion:
         # Max depth has ben reached
@@ -29,17 +36,17 @@ class Tree:
             return Node(None, None, None, data.iloc[:, -1].mode()[0])
         
 
-        leftData, rightData = self.splitData(split, data)
+        leftData, rightData = self._splitData(split, data)
 
         node = Node(feature=split[list(split.keys())[0]]["feature"], value=split[list(split.keys())[0]]["value"], optimalSplitDirection=list(split.keys())[0])
 
-        node.left = self.train(leftData, depth + 1)
-        node.right = self.train(rightData, depth + 1)
+        node.left = self._train(leftData, depth + 1)
+        node.right = self._train(rightData, depth + 1)
 
         return node
 
 
-    def findSplit(self, data) -> dict:
+    def _findSplit(self, data) -> dict:
         features = data.columns[:-1]
 
         giniSmallest = {
@@ -99,7 +106,7 @@ class Tree:
         
 
 
-    def splitData(self, split, data):
+    def _splitData(self, split, data):
         if list(split.keys())[0] == "left":
             leftData = data[data[split["left"]["feature"]] <= split["left"]["value"]]
             rightData = data[data[split["left"]["feature"]] > split["left"]["value"]]
