@@ -33,7 +33,8 @@ y_pred = tree.predict(X=X_test)
 ## Example
 
 ```Python
-from decision_tree import DecisionTree
+from decisiontree import Tree
+import pandas as pd
 from sklearn.datasets import make_classification
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import accuracy_score
@@ -44,11 +45,8 @@ X, y = make_classification(n_samples=1000, n_features=10, n_classes=2, random_st
 # split data into training and testing sets
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
 
-# create decision tree instance
-dt = DecisionTree()
-
-# fit the decision tree to training data
-dt.fit(X_train, y_train)
+# create decision tree instance which also trains it)
+dt = Tree(X_train=X_train, y_train=y_train, maxDepth=12, minLabels=35, maxImpurity=0.1)
 
 # predict class labels for test data
 y_pred = dt.predict(X_test)
