@@ -14,6 +14,11 @@ class Tree:
 
         self.depth = 0
 
+        print("Attempting to train tree with hyperparameters:\n",
+              f"\tmaxDepth={self.maxDepth}\n",
+              f"\tminLabels={self.minLabels}\n",
+              f"\tmaxImpurity={self.maxImpurity}\n")
+
         self.root = self._train(self.data)
 
         if self.depth < self.maxDepth:
@@ -23,7 +28,9 @@ class Tree:
 
     def _train(self, data, depth = 0):
         self.depth = depth if depth > self.depth else self.depth + 0
-        print(f"\rDepth: { self.depth }/{ self.maxDepth }\t{ (self.depth/self.maxDepth) * 100:.1f}% |{ (int(20 * ((self.depth/self.maxDepth)))) * '='}{ (20 - int(20 * (self.depth/self.maxDepth))) * '-' }|", end="")
+        print(f"\rTraining \t{ (self.depth/self.maxDepth) * 100:.1f}%",
+              f" |{ (int(50 * ((self.depth/self.maxDepth)))) * '='}{ (50 - int(50 * (self.depth/self.maxDepth))) * '.' }|",
+              f"\tDepth { self.depth }/{ self.maxDepth }", end="")
 
         dataImpurity = gini(getClassDistribution(data.iloc[:, -1]))
         split = self._findSplit(data)
@@ -48,6 +55,7 @@ class Tree:
 
     def _findSplit(self, data) -> dict:
         features = data.columns[:-1]
+
 
         giniSmallest = {
                 "left": {"gini": 1, "feature": None, "value": None, "labels": 0},
@@ -100,9 +108,36 @@ class Tree:
         # for each data point, make a prediction and append to resulting series that is then returned to user
         # uses another recursive function
 
+        y_pred = pd.Series(dtype=float)
+
+        for idx, *dataPoint in X_test.itertuples():
+            prediction = self._getPred(dataPoint, self.root)
+            # print(prediction)
+            y_pred.at[idx] = prediction
         
         
-        return
+        return y_pred
+    
+
+    def _getPred(self, dataPoint, node):
+        
+        if node.left == None and node.right == None:
+            return node.value
+        
+        direction = node.optimalSplitDirection
+
+        if direction == "left":
+            if dataPoint[node.feature] <= node.value:
+                pred = self._getPred(dataPoint, node.left)
+            else:
+                pred =self._getPred(dataPoint, node.right)
+        else:
+            if dataPoint[node.feature] >= node.value:
+                pred = self._getPred(dataPoint, node.left)
+            else:
+                pred = self._getPred(dataPoint, node.right)
+
+        return pred
         
 
 
@@ -111,10 +146,7 @@ class Tree:
             leftData = data[data[split["left"]["feature"]] <= split["left"]["value"]]
             rightData = data[data[split["left"]["feature"]] > split["left"]["value"]]
         else:
-            try:
-                leftData = data[data[split["right"]["feature"]] >= split["right"]["value"]] # this way the complement is always on the right
-            except KeyError:
-                print(split)
+            leftData = data[data[split["right"]["feature"]] >= split["right"]["value"]] # this way the complement is always on the right
             rightData = data[data[split["right"]["feature"]] < split["right"]["value"]]
 
         return leftData, rightData
