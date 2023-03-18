@@ -1,7 +1,7 @@
 import pandas as pd
 
 class Tree:
-    def __init__(self, X_train: pd.DataFrame, y_train: pd.Series, maxDepth: int = 35, minLabels: int = 10, maxImpurity: float = 0.1) -> None:
+    def __init__(self, X_train: pd.DataFrame, y_train: pd.Series, maxDepth: int = 35, minLabels: int = 10, maxImpurity: float = 0.1, ensembled = False) -> None:
 
         #data
         self.X_train = X_train
@@ -13,24 +13,28 @@ class Tree:
         self.maxImpurity = maxImpurity
 
         self.depth = 0
+        self.ensembled = ensembled
 
-        print("Attempting to train tree with hyperparameters:\n",
-              f"\tmaxDepth={self.maxDepth}\n",
-              f"\tminLabels={self.minLabels}\n",
-              f"\tmaxImpurity={self.maxImpurity}\n")
+        if not ensembled:
+
+            print("Attempting to train tree with hyperparameters:\n",
+                f"\tmaxDepth={self.maxDepth}\n",
+                f"\tminLabels={self.minLabels}\n",
+                f"\tmaxImpurity={self.maxImpurity}\n")
 
         self.root = self._train(self.data)
-
-        if self.depth < self.maxDepth:
-            print("\nNOTE: The training terminated 'prematurely' (i.e., before reaching set max depth) due to one of the other stopping criterion \n",
-                  "being met. Probably due to there not being any splits that meet the max acceptable impurity while still satisfying the min label members.")
+        if not ensembled: 
+            if self.depth < self.maxDepth:
+                print("\nNOTE: The training terminated 'prematurely' (i.e., before reaching set max depth) due to one of the other stopping criterion \n",
+                    "being met. Probably due to there not being any splits that meet the max acceptable impurity while still satisfying the min label members.")
 
 
     def _train(self, data, depth = 0):
         self.depth = depth if depth > self.depth else self.depth + 0
-        print(f"\rTraining \t{ (self.depth/self.maxDepth) * 100:.1f}%",
-              f" |{ (int(50 * ((self.depth/self.maxDepth)))) * '='}{ (50 - int(50 * (self.depth/self.maxDepth))) * '.' }|",
-              f"\tDepth { self.depth }/{ self.maxDepth }", end="")
+        if not self.ensembled:
+            print(f"\rTraining \t{ (self.depth/self.maxDepth) * 100:.1f}%",
+                f" |{ (int(50 * ((self.depth/self.maxDepth)))) * '='}{ (50 - int(50 * (self.depth/self.maxDepth))) * '.' }|",
+                f"\tDepth { self.depth }/{ self.maxDepth }", end="")
 
         dataImpurity = gini(getClassDistribution(data.iloc[:, -1]))
         split = self._findSplit(data)
@@ -105,16 +109,13 @@ class Tree:
 
 
     def predict(self, X_test: pd.DataFrame):
-        # for each data point, make a prediction and append to resulting series that is then returned to user
-        # uses another recursive function
-
+        # TODO
+        # - Refactor so it can also use  single unpacked itertuple datapoint so forest doesnt need its own copy of _getPred lol
         y_pred = pd.Series(dtype=float)
 
         for idx, *dataPoint in X_test.itertuples():
             prediction = self._getPred(dataPoint, self.root)
-            # print(prediction)
             y_pred.at[idx] = prediction
-        
         
         return y_pred
     
@@ -152,7 +153,13 @@ class Tree:
         return leftData, rightData
     
 
-    def printTree(self, node, indent = ''):
+    def printTree(self, node, indent = '') -> None:
+        """ Prints tree, depth is determined by 4 '-' characters. Left node is on top and is the one which the parent condition leads too
+        
+        ## Arguments
+        node: node to traverse and print tree from
+        indent: *by default ''* indent of root node
+        """
         if node.left == None and node.right == None:
             print(f"{indent}predict {node.value}")
             return
