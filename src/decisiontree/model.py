@@ -1,4 +1,8 @@
 import pandas as pd
+from datetime import datetime
+import json
+import numpy as np
+
 
 class Tree:
     def __init__(self, X_train: pd.DataFrame, y_train: pd.Series, maxDepth: int = 35, minLabels: int = 10, maxImpurity: float = 0.1, ensembled = False) -> None:
@@ -141,7 +145,6 @@ class Tree:
         return pred
         
 
-
     def _splitData(self, split, data):
         if list(split.keys())[0] == "left":
             leftData = data[data[split["left"]["feature"]] <= split["left"]["value"]]
@@ -167,7 +170,24 @@ class Tree:
         print(f"{indent}{node.feature} {'<=' if node.optimalSplitDirection == 'left' else '>='}{node.value}")
         self.printTree(node.left, indent + '----')
         self.printTree(node.right, indent + '----')
+
+
+    def toDict(self, node):
+
+        if node.left == None and node.right == None:
+            return {"value": node.value}
+
+        d = {"feature": node.feature, "value": node.value, "optimalSplitDirection": node.optimalSplitDirection}
+
+        d["left"] = self.toDict(node.left)
+        d["right"] = self.toDict(node.right)
+
+        return d
     
+
+    def toJSON(self, dictionary, fileName = datetime.today().strftime('%Y%m%d_%H%M%S') + ".json"): 
+        with open(fileName, "w") as outfile:
+            json.dump(dictionary, outfile, cls=NpEncoder)
            
 
 class Node:
@@ -177,7 +197,19 @@ class Node:
         self.feature = feature
         self.value = value
         self.optimalSplitDirection = optimalSplitDirection
-        
+
+
+# https://stackoverflow.com/a/57915246
+class NpEncoder(json.JSONEncoder):
+    def default(self, obj):
+        if isinstance(obj, np.integer):
+            return int(obj)
+        if isinstance(obj, np.floating):
+            return float(obj)
+        if isinstance(obj, np.ndarray):
+            return obj.tolist()
+        return super(NpEncoder, self).default(obj)
+
 
 def gini(classDistribution: dict[str, float]) -> float:
     """ Returns the Gini impurity of set
