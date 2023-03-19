@@ -101,7 +101,6 @@ This will dump the JSON version of the tree into a file. The name of the file is
 This tree generated (beautified):
 
 ```JSON
-20230319_234122.json
 {
 	"feature": 8,
 	"value": 1.1634157882836547,
