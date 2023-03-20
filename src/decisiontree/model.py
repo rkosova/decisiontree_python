@@ -171,7 +171,7 @@ class Tree:
         self.printTree(node.left, indent + '----')
         self.printTree(node.right, indent + '----')
 
-
+    # connect together
     def toDict(self, node):
 
         if node.left == None and node.right == None:
@@ -188,6 +188,11 @@ class Tree:
     def toJSON(self, dictionary, fileName = datetime.today().strftime('%Y%m%d_%H%M%S') + ".json"): 
         with open(fileName, "w") as outfile:
             json.dump(dictionary, outfile, cls=NpEncoder)
+
+    @staticmethod
+    def fromJSON(fileName):
+        with open(fileName, "r") as infile:
+            pass
            
 
 class Node:
