@@ -179,23 +179,23 @@ class Tree:
         self.printTree(node.left, indent + '----')
         self.printTree(node.right, indent + '----')
 
-    # connect together
-    def toDict(self, node):
+    def _toDict(self, node):
 
         if node.left == None and node.right == None:
             return {"value": node.value}
 
         d = {"feature": node.feature, "value": node.value, "optimalSplitDirection": node.optimalSplitDirection}
 
-        d["left"] = self.toDict(node.left)
-        d["right"] = self.toDict(node.right)
+        d["left"] = self._toDict(node.left)
+        d["right"] = self._toDict(node.right)
 
         return d
     
 
-    def toJSON(self, dictionary, fileName = datetime.today().strftime('%Y%m%d_%H%M%S') + ".json"): 
+    def toJSON(self, fileName = datetime.today().strftime('%Y%m%d_%H%M%S') + ".json"): 
+        d = self._toDict(self.root)
         with open(fileName, "w") as outfile:
-            json.dump(dictionary, outfile, cls=NpEncoder)
+            json.dump(d, outfile, cls=NpEncoder)
 
 
     @staticmethod
@@ -216,7 +216,6 @@ class Tree:
         with open(fileName, "r") as infile:
             tree_dict = json.load(infile) 
 
-        print(tree_dict)
         tree = Tree(read=True)
         tree.root = Tree.fromDict(tree_dict)
         return tree
