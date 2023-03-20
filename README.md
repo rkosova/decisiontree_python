@@ -89,11 +89,12 @@ Accuracy: 0.82
 
 (left neighbour on top, accessed through parent condition)
 
+### Saving Trees to JSON Files
+
 Trees can also be saved by passing the output of the `toDict` Tree method to the `toJSON` Tree method:
 
 ```Python
-d = dt.toDict(dt.root)
-dt.toJSON(d)
+dt.toJSON()
 ```
 
 This will dump the JSON version of the tree into a file. The name of the file is the data and time of creation unless a `filename` parameter is passed to `toJSON`.
@@ -160,6 +161,16 @@ This tree generated (beautified):
         }
     }
 } 
+```
+
+### Reading Trees from JSON Files
+
+To read trees from previously generated JSON files:
+
+```Python
+from decisiontree import Tree
+
+dt = Tree.fromJSON("filename.json")
 ```
 
 ### Random Forest
