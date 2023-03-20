@@ -89,7 +89,7 @@ Accuracy: 0.82
 
 (left neighbour on top, accessed through parent condition)
 
-### Saving Trees to JSON Files
+#### Saving Trees to JSON Files
 
 Trees can also be saved by passing the output of the `toDict` Tree method to the `toJSON` Tree method:
 
@@ -163,7 +163,7 @@ This tree generated (beautified):
 } 
 ```
 
-### Reading Trees from JSON Files
+#### Reading Trees from JSON Files
 
 To read trees from previously generated JSON files:
 
