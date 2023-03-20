@@ -5,32 +5,40 @@ import numpy as np
 
 
 class Tree:
-    def __init__(self, X_train: pd.DataFrame, y_train: pd.Series, maxDepth: int = 35, minLabels: int = 10, maxImpurity: float = 0.1, ensembled = False) -> None:
-
+    def __init__(self, 
+                 X_train: pd.DataFrame = None, 
+                 y_train: pd.Series = None, 
+                 maxDepth: int = 35, 
+                 minLabels: int = 10, 
+                 maxImpurity: float = 0.1, 
+                 ensembled = False,
+                 read = False) -> None:
+        
         #data
-        self.X_train = X_train
-        self.y_train = y_train
-        self.data = pd.concat((X_train, y_train), axis=1)
-        # hyperparameters
-        self.maxDepth = maxDepth
-        self.minLabels = minLabels
-        self.maxImpurity = maxImpurity
+        if not read:
+            self.X_train = X_train
+            self.y_train = y_train
+            self.data = pd.concat((X_train, y_train), axis=1)
+            # hyperparameters
+            self.maxDepth = maxDepth
+            self.minLabels = minLabels
+            self.maxImpurity = maxImpurity
 
-        self.depth = 0
-        self.ensembled = ensembled
+            self.depth = 0
+            self.ensembled = ensembled
 
-        if not ensembled:
+            if not ensembled:
+                print("Attempting to train tree with hyperparameters:\n",
+                    f"\tmaxDepth={self.maxDepth}\n",
+                    f"\tminLabels={self.minLabels}\n",
+                    f"\tmaxImpurity={self.maxImpurity}\n")
 
-            print("Attempting to train tree with hyperparameters:\n",
-                f"\tmaxDepth={self.maxDepth}\n",
-                f"\tminLabels={self.minLabels}\n",
-                f"\tmaxImpurity={self.maxImpurity}\n")
+            self.root = self._train(self.data)
 
-        self.root = self._train(self.data)
-        if not ensembled: 
-            if self.depth < self.maxDepth:
-                print("\nNOTE: The training terminated 'prematurely' (i.e., before reaching set max depth) due to one of the other stopping criterion \n",
-                    "being met. Probably due to there not being any splits that meet the max acceptable impurity while still satisfying the min label members.")
+            if not ensembled: 
+                if self.depth < self.maxDepth:
+                    print("\nNOTE: The training terminated 'prematurely' (i.e., before reaching set max depth) due to one of the other stopping criterion \n",
+                        "being met. Probably due to there not being any splits that meet the max acceptable impurity while still satisfying the min label members.")
 
 
     def _train(self, data, depth = 0):
@@ -189,11 +197,30 @@ class Tree:
         with open(fileName, "w") as outfile:
             json.dump(dictionary, outfile, cls=NpEncoder)
 
+
+    @staticmethod
+    def fromDict(nodeDict):
+        if "left" not in nodeDict.keys() and "right" not in nodeDict.keys():
+            return Node(None, None, None, nodeDict["value"])
+        
+        node = Node(feature=nodeDict["feature"], value=nodeDict["value"], optimalSplitDirection=nodeDict["optimalSplitDirection"])
+
+        node.left = Tree.fromDict(nodeDict["left"])
+        node.right = Tree.fromDict(nodeDict["right"])
+
+        return node
+    
+
     @staticmethod
     def fromJSON(fileName):
         with open(fileName, "r") as infile:
-            pass
-           
+            tree_dict = json.load(infile) 
+
+        print(tree_dict)
+        tree = Tree(read=True)
+        tree.root = Tree.fromDict(tree_dict)
+        return tree
+        
 
 class Node:
     def __init__(self, left = None, right = None, feature = None, value = None, optimalSplitDirection = None) -> None:
