@@ -91,7 +91,7 @@ Accuracy: 0.82
 
 #### Saving Trees to JSON Files
 
-Trees can also be saved by passing the output of the `toDict` Tree method to the `toJSON` Tree method:
+Trees can also be saved by calling the `toJSON` method:
 
 ```Python
 dt.toJSON()
