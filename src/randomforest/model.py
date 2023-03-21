@@ -7,16 +7,18 @@ from datetime import datetime
 import json
 
 class Forest:
-    def __init__(self, X_train: pd.DataFrame, y_train: pd.Series, n_trees: int, maxDepth: int = 10, minLabels: int = 10, maxImpurity: float = 0.1):
-        self.n_trees = n_trees
+    def __init__(self, X_train: pd.DataFrame = None, y_train: pd.Series = None, n_trees: int = None, maxDepth: int = 10, minLabels: int = 10, maxImpurity: float = 0.1, read = False):
+        if not read:
+            self.n_trees = n_trees
 
-        self.completed = 0
+            self.completed = 0
 
-        print(f"Stand by as {n_trees} trees are being trained. Depending on the complexity of the data and depth of the tree, this may take a while.")
-        
-        with Pool(processes=n_trees) as pool:
-            self.trees = pool.starmap(self._train_tree, [(X_train, y_train, maxDepth, minLabels, maxImpurity) for _ in range(n_trees)])
-
+            print(f"Stand by as {n_trees} trees are being trained. Depending on the complexity of the data and depth of the tree, this may take a while.")
+            
+            with Pool(processes=n_trees) as pool:
+                self.trees = pool.starmap(self._train_tree, [(X_train, y_train, maxDepth, minLabels, maxImpurity) for _ in range(n_trees)])
+        else:
+            self.trees = []
 
     def predict(self, X: pd.DataFrame):
         y_pred = pd.Series(dtype=float)
@@ -68,4 +70,21 @@ class Forest:
 
         with open(fileName, "w") as outfile:
                 json.dump(d, outfile, cls=NpEncoder)
+
+
+    @staticmethod
+    def fromJSON(fileName):
+        with open(fileName, "r") as infile:
+            forest_dict = json.load(infile)
+
+        forest = Forest(read=True)
+
+        for i in forest_dict.keys():
+            tree = Tree(read=True)
+            tree.root = Tree.fromDict(forest_dict[i])
+            forest.trees.append(tree)
+
+        return forest
+
+        
         
