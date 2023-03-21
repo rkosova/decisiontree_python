@@ -57,3 +57,7 @@ class Forest:
 
         return tree
     
+
+    def toJSON(self, dictionary):
+        pass
+    
