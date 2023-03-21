@@ -97,7 +97,7 @@ Trees can also be saved by calling the `toJSON` method:
 dt.toJSON()
 ```
 
-This will dump the JSON version of the tree into a file. The name of the file is the data and time of creation unless a `filename` parameter is passed to `toJSON`.
+This will dump the JSON version of the tree into a file. The name of the file is the date and time of creation unless a `filename` parameter is passed to `toJSON`.
 
 This tree generated (beautified):
 
@@ -200,7 +200,7 @@ y_train = pd.Series(y_train, name='Label')
 y_test = pd.Series(y_test, name='Label')
 
 # create random forest instance (which also trains it)
-forest = Forest(X_train, y_train, n_trees=15, maxDepth=20, minLabels=17, maxImpurity=0.15)
+forest = Forest(X_train, y_train, n_trees=2, maxDepth=10, minLabels=17, maxImpurity=0.15)
 
 # predict class labels for test data
 y_pred = forest.predict(X_test)
@@ -208,6 +208,199 @@ y_pred = forest.predict(X_test)
 # calculate accuracy
 accuracy = accuracy_score(y_test, y_pred)
 print(f"Accuracy: {accuracy}")
+```
+
+#### Saving Forests to JSON Files
+
+Forests can also be saved by calling the `toJSON` method:
+
+```Python
+forest.toJSON()
+```
+
+This will dump the JSON version of the forest into a file. The name of the file is the date and time of creation unless a `filename` parameter is passed to `toJSON`.
+
+This forest generated (beautified):
+
+```JSON
+{
+  "0": {
+    "feature": 6,
+    "value": 2.644363890592043,
+    "optimalSplitDirection": "right",
+    "left": {
+      "value": 1
+    },
+    "right": {
+      "feature": 8,
+      "value": -2.5028474689252995,
+      "optimalSplitDirection": "left",
+      "left": {
+        "value": 1
+      },
+      "right": {
+        "feature": 0,
+        "value": -1.6805950177168596,
+        "optimalSplitDirection": "left",
+        "left": {
+          "value": 1
+        },
+        "right": {
+          "feature": 0,
+          "value": -1.361394784987932,
+          "optimalSplitDirection": "left",
+          "left": {
+            "value": 1
+          },
+          "right": {
+            "feature": 8,
+            "value": 1.631668884161841,
+            "optimalSplitDirection": "right",
+            "left": {
+              "value": 0
+            },
+            "right": {
+              "feature": 0,
+              "value": -1.191748478897981,
+              "optimalSplitDirection": "left",
+              "left": {
+                "value": 1
+              },
+              "right": {
+                "feature": 6,
+                "value": -1.048346906991923,
+                "optimalSplitDirection": "left",
+                "left": {
+                  "value": 0
+                },
+                "right": {
+                  "feature": 8,
+                  "value": -1.9015826106409448,
+                  "optimalSplitDirection": "left",
+                  "left": {
+                    "value": 1
+                  },
+                  "right": {
+                    "feature": 8,
+                    "value": -1.4592268676806124,
+                    "optimalSplitDirection": "left",
+                    "left": {
+                      "value": 1
+                    },
+                    "right": {
+                      "feature": 8,
+                      "value": -1.2365392752077555,
+                      "optimalSplitDirection": "left",
+                      "left": {
+                        "value": 1
+                      },
+                      "right": {
+                        "value": 1
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "1": {
+    "feature": 8,
+    "value": -2.5521845472862204,
+    "optimalSplitDirection": "left",
+    "left": {
+      "value": 1
+    },
+    "right": {
+      "feature": 0,
+      "value": -1.97861384241866,
+      "optimalSplitDirection": "left",
+      "left": {
+        "value": 1
+      },
+      "right": {
+        "feature": 0,
+        "value": -1.5148760309785447,
+        "optimalSplitDirection": "left",
+        "left": {
+          "value": 1
+        },
+        "right": {
+          "feature": 8,
+          "value": 1.9300852707145257,
+          "optimalSplitDirection": "right",
+          "left": {
+            "value": 0
+          },
+          "right": {
+            "feature": 0,
+            "value": -1.3038058825232772,
+            "optimalSplitDirection": "left",
+            "left": {
+              "value": 1
+            },
+            "right": {
+              "feature": 8,
+              "value": 1.631668884161841,
+              "optimalSplitDirection": "right",
+              "left": {
+                "value": 0
+              },
+              "right": {
+                "feature": 0,
+                "value": -1.191748478897981,
+                "optimalSplitDirection": "left",
+                "left": {
+                  "value": 1
+                },
+                "right": {
+                  "feature": 0,
+                  "value": -0.4718009910981303,
+                  "optimalSplitDirection": "left",
+                  "left": {
+                    "value": 1
+                  },
+                  "right": {
+                    "feature": 8,
+                    "value": 0.8869521904343975,
+                    "optimalSplitDirection": "right",
+                    "left": {
+                      "value": 0
+                    },
+                    "right": {
+                      "feature": 0,
+                      "value": 1.014404518885495,
+                      "optimalSplitDirection": "right",
+                      "left": {
+                        "value": 0
+                      },
+                      "right": {
+                        "value": 0
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
+```
+
+#### Reading Forests from JSON Files
+
+To read forests from previously generated JSON files:
+
+```Python
+from randomforest import Forest
+
+forest = Forest.fromJSON("filename.json")
 ```
 
 ## License
