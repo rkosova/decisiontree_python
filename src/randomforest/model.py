@@ -1,8 +1,10 @@
 import pandas as pd
-from decisiontree import Tree
+from decisiontree import Tree, NpEncoder
 from multiprocessing import Pool
 import random
 from collections import Counter
+from datetime import datetime
+import json
 
 class Forest:
     def __init__(self, X_train: pd.DataFrame, y_train: pd.Series, n_trees: int, maxDepth: int = 10, minLabels: int = 10, maxImpurity: float = 0.1):
@@ -58,6 +60,12 @@ class Forest:
         return tree
     
 
-    def toJSON(self, dictionary):
-        pass
-    
+    def toJSON(self, fileName=datetime.today().strftime('%Y%m%d_%H%M%S') + ".json"):
+        d = {}
+
+        for tree in range(self.n_trees):
+            d[tree] = self.trees[tree]._toDict(self.trees[tree].root)
+
+        with open(fileName, "w") as outfile:
+                json.dump(d, outfile, cls=NpEncoder)
+        

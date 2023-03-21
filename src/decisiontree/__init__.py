@@ -1,1 +1,1 @@
-from .model import Tree, Node
+from .model import Tree, Node, NpEncoder
