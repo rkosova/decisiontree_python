@@ -39,7 +39,7 @@ class Tree:
                 if self.depth < self.maxDepth:
                     print("\nNOTE: The training terminated 'prematurely' (i.e., before reaching set max depth) due to one of the other stopping criterion \n",
                         "being met. Probably due to there not being any splits that meet the max acceptable impurity while still satisfying the min label members.")
-
+        
 
     def _train(self, data, depth = 0):
         self.depth = depth if depth > self.depth else self.depth + 0
