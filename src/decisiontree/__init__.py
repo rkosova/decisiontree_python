@@ -1,1 +1,1 @@
-from .model import Tree, Node, NpEncoder
+from .model import Tree, Node, NpEncoder, HyperTuner

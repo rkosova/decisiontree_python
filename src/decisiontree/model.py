@@ -2,6 +2,7 @@ import pandas as pd
 from datetime import datetime
 import json
 import numpy as np
+import random
 
 
 class Tree:
@@ -240,6 +241,46 @@ class NpEncoder(json.JSONEncoder):
         if isinstance(obj, np.ndarray):
             return obj.tolist()
         return super(NpEncoder, self).default(obj)
+
+
+class HyperTuner:
+    def __init__(self, maxDepth: int = 50, minLabels: int = 10, maxImpurity: int = 0.1, nIndividuals: int = 10) -> None:
+        self.maxDepth = maxDepth
+        self.minLabels = minLabels
+        self.maxImpurity = maxImpurity
+        self.nIndividuals = nIndividuals
+        self.individuals = []
+
+        self._getBinStr = lambda x: format(x, 'b')
+        self._getDecimalToInt = lambda x: int(str(x)[2:5])
+
+        self.maxDepthGenomeLength = len(self._getBinStr(self.maxDepth))
+        self.minLabelsGenomeLength = len(self._getBinStr(self.minLabels))
+
+
+    def _createIndividuals(self):
+        for i in range(self.nIndividuals):
+            depthGenome = self._getBinStr(random.randint(0, self.maxDepth)).zfill(self.maxDepthGenomeLength)
+            labelsGenome = self._getBinStr(random.randrange(0, self.minLabels)).zfill(self.minLabelsGenomeLength)
+            impurityGenome = self._getBinStr(self._getDecimalToInt(random.uniform(0, self.maxImpurity)))
+            
+            individual = list(depthGenome + labelsGenome + impurityGenome)
+            self.individuals.append(individual)
+
+
+
+    # genome crossover via k-point crossover. k-points may be positioned between genomes for genome-specific crossover
+    # or randomly for holistic individual crossover
+
+
+    # the decimal value (mId) of the maxImpurity genome can be turned to its 0. form via the formula:
+    #
+    # mId / 10^len(str(mId))
+    #
+    # e.g.
+    # mId = 128
+    #
+    # 128 / 10^3 = 128 / 1000 = 0.128
 
 
 def gini(classDistribution: dict[str, float]) -> float:
