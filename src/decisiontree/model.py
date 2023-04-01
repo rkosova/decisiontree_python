@@ -3,7 +3,8 @@ from datetime import datetime
 import json
 import numpy as np
 import random
-
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import accuracy_score
 
 class Tree:
     def __init__(self, 
@@ -29,7 +30,7 @@ class Tree:
             self.ensembled = ensembled
 
             if not ensembled:
-                print("Attempting to train tree with hyperparameters:\n",
+                print("\n\nAttempting to train tree with hyperparameters:\n",
                     f"\tmaxDepth={self.maxDepth}\n",
                     f"\tminLabels={self.minLabels}\n",
                     f"\tmaxImpurity={self.maxImpurity}\n")
@@ -245,8 +246,8 @@ class NpEncoder(json.JSONEncoder):
 
 class HyperTuner:
     def __init__(self, X_train: pd.DataFrame = None, y_train: pd.Series = None, maxDepth: int = 50, minLabels: int = 10, maxImpurity: int = 0.1, nIndividuals: int = 10) -> None:
-        self.X_train = X_train # split X_train and y_train into X_train, y_train, X_validate, y_validate
-        self.y_train = y_train # validation data is used for genetic algorithm fitness
+        # split X_train and y_train into X_train, y_train, X_validate, y_validate
+        # validation data is used for genetic algorithm fitness
         self.maxDepth = maxDepth 
         self.minLabels = minLabels
         self.maxImpurity = maxImpurity
@@ -257,6 +258,8 @@ class HyperTuner:
 
         self.maxDepthGenomeLength = len(self._getBinStr(self.maxDepth))
         self.minLabelsGenomeLength = len(self._getBinStr(self.minLabels))
+
+        self.X_train, self.X_validate, self.y_train, self.y_validate = train_test_split(X_train, y_train, test_size=0.3)
 
 
     def _getTwelveBitImpurity(self, minImpurity: float):
@@ -281,28 +284,35 @@ class HyperTuner:
     def _createFirstGeneration(self):
         for i in range(self.nIndividuals):
             individual = []
-            depthGenome = self._getBinStr(random.randint(0, self.maxDepth)).zfill(self.maxDepthGenomeLength)
+            depthGenome = self._getBinStr(random.randint(1, self.maxDepth)).zfill(self.maxDepthGenomeLength)
             labelsGenome = self._getBinStr(random.randrange(0, self.minLabels)).zfill(self.minLabelsGenomeLength)
-            impurityGenome = self._getTwelveBitImpurity(random.uniform(0, 0.5))
+            impurityGenome = self._getTwelveBitImpurity(random.uniform(0, self.maxImpurity))
             # impurityGenome = self._getBinStr(self._getDecimalToInt(random.uniform(0, self.maxImpurity))) # turn to 9 bit string 
             
             individual.append((depthGenome + labelsGenome + impurityGenome))
+            # print(individual)
+            individual.append(self._fitness(individual[0]))
             self.population.append(individual)
 
 
     def _fitness(self, individual):
-        maxDepth = int(individual[0][:self.maxDepthGenomeLength], 2)
-        minLabels = int(individual[0][self.maxDepthGenomeLength:self.maxDepthGenomeLength + self.minLabelsGenomeLength], 2)
-        # print(individual[0][self.maxDepthGenomeLength + self.minLabelsGenomeLength:], len(individual[0][self.maxDepthGenomeLength + self.minLabelsGenomeLength:]))
-        maxImpurity = self._decodeTwelveBitImpurity(individual[0][self.maxDepthGenomeLength + self.minLabelsGenomeLength:])
+        # print(individual)
+        maxDepth = int(individual[:self.maxDepthGenomeLength], 2)
+        # print(individual[:self.maxDepthGenomeLength])
+        minLabels = int(individual[self.maxDepthGenomeLength:self.maxDepthGenomeLength + self.minLabelsGenomeLength], 2)
+        # print(individual[self.maxDepthGenomeLength + self.minLabelsGenomeLength:], len(individual[self.maxDepthGenomeLength + self.minLabelsGenomeLength:]))
+        maxImpurity = self._decodeTwelveBitImpurity(individual[self.maxDepthGenomeLength + self.minLabelsGenomeLength:])
 
-        print(maxDepth, minLabels, maxImpurity)
+        tree = Tree(self.X_train, self.y_train, maxDepth, minLabels, maxImpurity)
+        y_pred = tree.predict(self.X_validate)
+
+        accuracy = accuracy_score(self.y_validate, y_pred)
+
+        return accuracy
 
 
-    # genome crossover via k-point crossover. k-points may be positioned between genomes for genome-specific crossover
-    # or randomly for holistic individual crossover
-
-
+    # genome crossover via k-point crossover. k-points may be positioned between genomes for genome-specific (genomic) crossover
+    # or randomly for individual (holistic) crossover
 
 
 def gini(classDistribution: dict[str, float]) -> float:
