@@ -244,43 +244,65 @@ class NpEncoder(json.JSONEncoder):
 
 
 class HyperTuner:
-    def __init__(self, maxDepth: int = 50, minLabels: int = 10, maxImpurity: int = 0.1, nIndividuals: int = 10) -> None:
-        self.maxDepth = maxDepth
+    def __init__(self, X_train: pd.DataFrame = None, y_train: pd.Series = None, maxDepth: int = 50, minLabels: int = 10, maxImpurity: int = 0.1, nIndividuals: int = 10) -> None:
+        self.X_train = X_train # split X_train and y_train into X_train, y_train, X_validate, y_validate
+        self.y_train = y_train # validation data is used for genetic algorithm fitness
+        self.maxDepth = maxDepth 
         self.minLabels = minLabels
         self.maxImpurity = maxImpurity
         self.nIndividuals = nIndividuals
-        self.individuals = []
+        self.population = []
 
         self._getBinStr = lambda x: format(x, 'b')
-        self._getDecimalToInt = lambda x: int(str(x)[2:5])
 
         self.maxDepthGenomeLength = len(self._getBinStr(self.maxDepth))
         self.minLabelsGenomeLength = len(self._getBinStr(self.minLabels))
 
 
-    def _createIndividuals(self):
+    def _getTwelveBitImpurity(self, minImpurity: float):
+        twelveBitImp = ''
+
+        for i in str(minImpurity)[2:5]:
+            twelveBitImp += self._getBinStr(int(i)).zfill(4)
+        
+        return twelveBitImp
+    
+
+    def _decodeTwelveBitImpurity(self, twelveBitImpurity: str):
+        t = 0
+        frac = 1
+        for i in range(0, 12, 4):
+            frac *= 10
+            t += int(twelveBitImpurity[i:i + 4], 2)/frac
+
+        return t
+    
+
+    def _createFirstGeneration(self):
         for i in range(self.nIndividuals):
+            individual = []
             depthGenome = self._getBinStr(random.randint(0, self.maxDepth)).zfill(self.maxDepthGenomeLength)
             labelsGenome = self._getBinStr(random.randrange(0, self.minLabels)).zfill(self.minLabelsGenomeLength)
-            impurityGenome = self._getBinStr(self._getDecimalToInt(random.uniform(0, self.maxImpurity)))
+            impurityGenome = self._getTwelveBitImpurity(random.uniform(0, 0.5))
+            # impurityGenome = self._getBinStr(self._getDecimalToInt(random.uniform(0, self.maxImpurity))) # turn to 9 bit string 
             
-            individual = list(depthGenome + labelsGenome + impurityGenome)
-            self.individuals.append(individual)
+            individual.append((depthGenome + labelsGenome + impurityGenome))
+            self.population.append(individual)
 
+
+    def _fitness(self, individual):
+        maxDepth = int(individual[0][:self.maxDepthGenomeLength], 2)
+        minLabels = int(individual[0][self.maxDepthGenomeLength:self.maxDepthGenomeLength + self.minLabelsGenomeLength], 2)
+        # print(individual[0][self.maxDepthGenomeLength + self.minLabelsGenomeLength:], len(individual[0][self.maxDepthGenomeLength + self.minLabelsGenomeLength:]))
+        maxImpurity = self._decodeTwelveBitImpurity(individual[0][self.maxDepthGenomeLength + self.minLabelsGenomeLength:])
+
+        print(maxDepth, minLabels, maxImpurity)
 
 
     # genome crossover via k-point crossover. k-points may be positioned between genomes for genome-specific crossover
     # or randomly for holistic individual crossover
 
 
-    # the decimal value (mId) of the maxImpurity genome can be turned to its 0. form via the formula:
-    #
-    # mId / 10^len(str(mId))
-    #
-    # e.g.
-    # mId = 128
-    #
-    # 128 / 10^3 = 128 / 1000 = 0.128
 
 
 def gini(classDistribution: dict[str, float]) -> float:
