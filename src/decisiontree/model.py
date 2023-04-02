@@ -14,7 +14,8 @@ class Tree:
                  minLabels: int = 10, 
                  maxImpurity: float = 0.1, 
                  ensembled = False,
-                 read = False) -> None:
+                 read = False,
+                 hyperTuned = False) -> None:
         
         #data
         if not read:
@@ -29,7 +30,7 @@ class Tree:
             self.depth = 0
             self.ensembled = ensembled
 
-            if not ensembled:
+            if not ensembled and not hyperTuned:
                 print("\n\nAttempting to train tree with hyperparameters:\n",
                     f"\tmaxDepth={self.maxDepth}\n",
                     f"\tminLabels={self.minLabels}\n",
@@ -37,7 +38,10 @@ class Tree:
 
             self.root = self._train(self.data)
 
-            if not ensembled: 
+            if hyperTuned:
+                print() # to escape previous tree's progress bar
+
+            if not ensembled and not hyperTuned: 
                 if self.depth < self.maxDepth:
                     print("\nNOTE: The training terminated 'prematurely' (i.e., before reaching set max depth) due to one of the other stopping criterion \n",
                         "being met. Probably due to there not being any splits that meet the max acceptable impurity while still satisfying the min label members.")
@@ -266,7 +270,7 @@ class HyperTuner:
         self.crossoverOperation = crossoverOperation
         self.mutationChance = mutationChance
 
-        self.generations = 0
+        self.generations = 1
         self.population = []
 
         self._getBinStr = lambda x: format(x, 'b')
@@ -283,7 +287,6 @@ class HyperTuner:
             if ind[1] > self.fittest[1]:
                 self.fittest = ind
 
-        print(self.generations, self.generations <= self.maxGenerations, self.fittest[1], self.fittest[1] < self.targetFitness)
         while self.generations <= self.maxGenerations and self.fittest[1] < self.targetFitness:
             print(f"\n\nGeneration {self.generations} / {self.maxGenerations}\n\n")
             mates = self._tournamentSelection(self.population) 
@@ -329,6 +332,7 @@ class HyperTuner:
     
 
     def _createFirstGeneration(self):
+        print(f"\n\nGeneration {self.generations} / {self.maxGenerations}\n\n")
         for i in range(self.nIndividuals):
             individual = []
             depthGenome = self._getBinStr(random.randint(1, self.maxDepth)).zfill(self.maxDepthGenomeLength)
@@ -347,7 +351,7 @@ class HyperTuner:
         minLabels = int(individual[self.maxDepthGenomeLength:self.maxDepthGenomeLength + self.minLabelsGenomeLength], 2)
         maxImpurity = self._decodeTwelveBitImpurity(individual[self.maxDepthGenomeLength + self.minLabelsGenomeLength:])
 
-        tree = Tree(self.X_train, self.y_train, maxDepth, minLabels, maxImpurity)
+        tree = Tree(self.X_train, self.y_train, maxDepth, minLabels, maxImpurity, hyperTuned=True)
         y_pred = tree.predict(self.X_validate)
 
         accuracy = accuracy_score(self.y_validate, y_pred)
