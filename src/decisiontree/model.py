@@ -286,7 +286,7 @@ class HyperTuner:
         print(self.generations, self.generations <= self.maxGenerations, self.fittest[1], self.fittest[1] < self.targetFitness)
         while self.generations <= self.maxGenerations and self.fittest[1] < self.targetFitness:
             print(f"\n\nGeneration {self.generations} / {self.maxGenerations}\n\n")
-            mates = self._tournamentSelection(self.population) # passed as array of arrays
+            mates = self._tournamentSelection(self.population) 
             self.population = self._mate(mates)
             self._mutatePopulation(self.population)
 
@@ -300,9 +300,7 @@ class HyperTuner:
             self.generations += 1
 
         mmaxDepth = int(self.fittest[0][:self.maxDepthGenomeLength], 2)
-        # print(individual[:self.maxDepthGenomeLength])
         mminLabels = int(self.fittest[0][self.maxDepthGenomeLength:self.maxDepthGenomeLength + self.minLabelsGenomeLength], 2)
-        # print(individual[self.maxDepthGenomeLength + self.minLabelsGenomeLength:], len(individual[self.maxDepthGenomeLength + self.minLabelsGenomeLength:]))
         mmaxImpurity = self._decodeTwelveBitImpurity(self.fittest[0][self.maxDepthGenomeLength + self.minLabelsGenomeLength:])
 
         tree = Tree(self.X_train, self.y_train, mmaxDepth, mminLabels, mmaxImpurity)
@@ -336,10 +334,8 @@ class HyperTuner:
             depthGenome = self._getBinStr(random.randint(1, self.maxDepth)).zfill(self.maxDepthGenomeLength)
             labelsGenome = self._getBinStr(random.randrange(0, self.minLabels)).zfill(self.minLabelsGenomeLength)
             impurityGenome = self._getTwelveBitImpurity(random.uniform(0, self.maxImpurity))
-            # impurityGenome = self._getBinStr(self._getDecimalToInt(random.uniform(0, self.maxImpurity))) # turn to 9 bit string 
             
             individual.append((depthGenome + labelsGenome + impurityGenome))
-            # print(individual)
             individual.append(self._fitness(individual[0]))
             self.population.append(individual)
         
@@ -347,11 +343,8 @@ class HyperTuner:
 
 
     def _fitness(self, individual):
-        # print(individual)
         maxDepth = int(individual[:self.maxDepthGenomeLength], 2)
-        # print(individual[:self.maxDepthGenomeLength])
         minLabels = int(individual[self.maxDepthGenomeLength:self.maxDepthGenomeLength + self.minLabelsGenomeLength], 2)
-        # print(individual[self.maxDepthGenomeLength + self.minLabelsGenomeLength:], len(individual[self.maxDepthGenomeLength + self.minLabelsGenomeLength:]))
         maxImpurity = self._decodeTwelveBitImpurity(individual[self.maxDepthGenomeLength + self.minLabelsGenomeLength:])
 
         tree = Tree(self.X_train, self.y_train, maxDepth, minLabels, maxImpurity)
@@ -371,14 +364,12 @@ class HyperTuner:
             tournament.sort(key=lambda x: x[1], reverse=True)
             mates.append(tournament[0])
         
-        print(mates) # they return as array of arrays 
         return mates
     
 
     def _crossover(self, individualA, individualB):
         childA = []
         childB = []
-        print("\n", individualA, individualB)
         if self.crossoverOperation == 'genomic':
             # maxDepth genome crossover
             maxDepthCPoint = random.randrange(0, self.maxDepthGenomeLength)
@@ -389,12 +380,6 @@ class HyperTuner:
             childAMaxDepthGenome = individualAMaxDepthGenome[:maxDepthCPoint] + individualBMaxDepthGenome[maxDepthCPoint:]
             childBMaxDepthGenome = individualBMaxDepthGenome[:maxDepthCPoint] + individualAMaxDepthGenome[maxDepthCPoint:]
 
-            print(f"\n\nmaxDepth crossover point: {maxDepthCPoint}\t", 
-                  f"individualA {individualAMaxDepthGenome[:maxDepthCPoint]} {individualAMaxDepthGenome[maxDepthCPoint:]}\t",
-                  f"individualB {individualBMaxDepthGenome[:maxDepthCPoint]} {individualBMaxDepthGenome[maxDepthCPoint:]}\t",
-                  f"childA maxDepth genome: {childAMaxDepthGenome}\tchildB maxDepth genome: {childBMaxDepthGenome}")
-
-
             # minLabels genome crossover
             minLabelsCPoint = random.randrange(0, self.minLabelsGenomeLength)
 
@@ -404,11 +389,6 @@ class HyperTuner:
             childAMinLabelsGenome = individualAMinLabelsGenome[:minLabelsCPoint] + individualBMinLabelsGenome[minLabelsCPoint:]
             childBMinLabelsGenome = individualBMinLabelsGenome[:minLabelsCPoint] + individualAMinLabelsGenome[minLabelsCPoint:]
 
-            print(f"minLabels crossover point: {minLabelsCPoint}\t", 
-                  f"individualA {individualAMinLabelsGenome[:minLabelsCPoint]} {individualAMinLabelsGenome[minLabelsCPoint:]}\t",
-                  f"individualB {individualBMinLabelsGenome[:minLabelsCPoint]} {individualBMinLabelsGenome[minLabelsCPoint:]}\t",
-                  f"childA minLabels genome: {childAMinLabelsGenome}\tchildB minLabels genome: {childBMinLabelsGenome}")
-
             # maxImpurity genome crossover
             maxImpurityCPoint = random.randrange(0, 12)
 
@@ -417,11 +397,7 @@ class HyperTuner:
 
             childAMaxImpurityGenome = individualAMaxImpurityGenome[:maxImpurityCPoint] + individualBMaxImpurityGenome[maxImpurityCPoint:]
             childBMaxImpurityGenome = individualBMaxImpurityGenome[:maxImpurityCPoint] + individualAMaxImpurityGenome[maxImpurityCPoint:]
-            
-            print(f"maxImpurity crossover point: {maxImpurityCPoint}\t", 
-                  f"individualA {individualAMaxImpurityGenome[:maxImpurityCPoint]} {individualAMaxImpurityGenome[maxImpurityCPoint:]}\t",
-                  f"individualB {individualBMaxImpurityGenome[:maxImpurityCPoint]} {individualBMaxImpurityGenome[maxImpurityCPoint:]}\t",
-                  f"childA maxImpurity genome: {childAMaxImpurityGenome}\tchildB maxImpurity genome: {childBMaxImpurityGenome}")
+
 
             childA.append(childAMaxDepthGenome + childAMinLabelsGenome + childAMaxImpurityGenome)
             childB.append(childBMaxDepthGenome + childBMinLabelsGenome + childBMaxImpurityGenome)
@@ -432,7 +408,7 @@ class HyperTuner:
     def _mate(self, mates):
         children = []
         for i in range(0, len(mates), 2):
-            children_ = list(self._crossover(mates[i], mates[i+1])) # again, passed as arrays of arrays (genes, fitness)
+            children_ = list(self._crossover(mates[i], mates[i+1])) 
             [children.append(child) for child in children_]
             
 
