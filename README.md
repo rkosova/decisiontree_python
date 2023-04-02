@@ -173,6 +173,27 @@ from decisiontree import Tree
 dt = Tree.fromJSON("filename.json")
 ```
 
+### HyperTuned Trees
+
+The `HyperTuner` class will generate a Tree with genetically tuned hyperparameters. The resulting tree will be saved to JSON directly. The `HyperTuner` constructor takes 10 parameters:
+
+- ```X_train```
+- ```y_train```
+- ```maxDepth``` High end of the range for randomly generated maxDepth (for initial population of individuals, later trees may have higher depth due to genetic crossover)
+- ```minLabels``` High end of the range for randomly generated minLabels (for initial population)
+- ```maxImpurity``` High end of the range for randomly generated maxImpurity (for initial population)
+- ```nIndividuals``` Number of individuals per generation (HAS TO BE EVEN FOR NOW)
+- ```targetFitness``` Fitness (accuracy) that will terminate genetic tuning
+- ```maxGenerations``` Maximum number of generations
+- ```crossoverOperation``` Genetic crossover generating to be used for mating (```'genomic'``` only supported for now)
+- ```mutationChance``` Chance that individual is mutated
+
+#### HyperTuning a tree
+
+```Python
+HyperTuner(X_train=X_train, y_train=y_train, maxDepth=30, minLabels=35, maxImpurity=0.175, nIndividuals=6, maxGenerations=7, targetFitness=0.97, mutationChance=0.3)
+```
+
 ### Random Forest
 
 Takes the same parameters as the Decision Tree only with the addition of `n_trees` which dictates how many trees will be in the forest.
