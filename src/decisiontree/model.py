@@ -245,13 +245,28 @@ class NpEncoder(json.JSONEncoder):
 
 
 class HyperTuner:
-    def __init__(self, X_train: pd.DataFrame = None, y_train: pd.Series = None, maxDepth: int = 50, minLabels: int = 10, maxImpurity: int = 0.1, nIndividuals: int = 10) -> None:
+    def __init__(self, X_train: pd.DataFrame = None,
+                y_train: pd.Series = None, 
+                maxDepth: int = 50, 
+                minLabels: int = 10, 
+                maxImpurity: int = 0.1, 
+                nIndividuals: int = 10,
+                targetFitness: float = 0.9,
+                maxGenerations: int = 25,
+                crossoverOperation: str = 'genomic',
+                mutationChance: float = .15) -> None:
         # split X_train and y_train into X_train, y_train, X_validate, y_validate
         # validation data is used for genetic algorithm fitness
         self.maxDepth = maxDepth 
         self.minLabels = minLabels
         self.maxImpurity = maxImpurity
         self.nIndividuals = nIndividuals
+        self.targetFitness = targetFitness
+        self.maxGenerations = maxGenerations
+        self.crossoverOperation = crossoverOperation
+        self.mutationChance = mutationChance
+
+        self.generations = 0
         self.population = []
 
         self._getBinStr = lambda x: format(x, 'b')
@@ -260,6 +275,40 @@ class HyperTuner:
         self.minLabelsGenomeLength = len(self._getBinStr(self.minLabels))
 
         self.X_train, self.X_validate, self.y_train, self.y_validate = train_test_split(X_train, y_train, test_size=0.3)
+
+        self._createFirstGeneration()
+        self.fittest = self.population[0]
+
+        for ind in self.population:
+            if ind[1] > self.fittest[1]:
+                self.fittest = ind
+
+        print(self.generations, self.generations <= self.maxGenerations, self.fittest[1], self.fittest[1] < self.targetFitness)
+        while self.generations <= self.maxGenerations and self.fittest[1] < self.targetFitness:
+            print(f"\n\nGeneration {self.generations} / {self.maxGenerations}\n\n")
+            mates = self._tournamentSelection(self.population) # passed as array of arrays
+            self.population = self._mate(mates)
+            self._mutatePopulation(self.population)
+
+            for ind in self.population:
+                ind.append(self._fitness(ind[0]))
+
+            for ind in self.population:
+                if ind[1] > self.fittest[1]:
+                    self.fittest = ind
+            
+            self.generations += 1
+
+        mmaxDepth = int(self.fittest[0][:self.maxDepthGenomeLength], 2)
+        # print(individual[:self.maxDepthGenomeLength])
+        mminLabels = int(self.fittest[0][self.maxDepthGenomeLength:self.maxDepthGenomeLength + self.minLabelsGenomeLength], 2)
+        # print(individual[self.maxDepthGenomeLength + self.minLabelsGenomeLength:], len(individual[self.maxDepthGenomeLength + self.minLabelsGenomeLength:]))
+        mmaxImpurity = self._decodeTwelveBitImpurity(self.fittest[0][self.maxDepthGenomeLength + self.minLabelsGenomeLength:])
+
+        tree = Tree(self.X_train, self.y_train, mmaxDepth, mminLabels, mmaxImpurity)
+
+        tree.toJSON()
+
 
 
     def _getTwelveBitImpurity(self, minImpurity: float):
@@ -293,6 +342,8 @@ class HyperTuner:
             # print(individual)
             individual.append(self._fitness(individual[0]))
             self.population.append(individual)
+        
+        self.generations += 1
 
 
     def _fitness(self, individual):
@@ -310,6 +361,95 @@ class HyperTuner:
 
         return accuracy
 
+
+    def _tournamentSelection(self, population):
+        # SELECTION WITH REPLACEMENT. LEADS TO LESS DIVERSE SMALL POPULATIONS
+        mates = []
+
+        while len(mates) < len(population):
+            tournament = random.sample(population, 2)
+            tournament.sort(key=lambda x: x[1], reverse=True)
+            mates.append(tournament[0])
+        
+        print(mates) # they return as array of arrays 
+        return mates
+    
+
+    def _crossover(self, individualA, individualB):
+        childA = []
+        childB = []
+        print("\n", individualA, individualB)
+        if self.crossoverOperation == 'genomic':
+            # maxDepth genome crossover
+            maxDepthCPoint = random.randrange(0, self.maxDepthGenomeLength)
+
+            individualAMaxDepthGenome = individualA[0][:self.maxDepthGenomeLength]
+            individualBMaxDepthGenome = individualB[0][:self.maxDepthGenomeLength]
+
+            childAMaxDepthGenome = individualAMaxDepthGenome[:maxDepthCPoint] + individualBMaxDepthGenome[maxDepthCPoint:]
+            childBMaxDepthGenome = individualBMaxDepthGenome[:maxDepthCPoint] + individualAMaxDepthGenome[maxDepthCPoint:]
+
+            print(f"\n\nmaxDepth crossover point: {maxDepthCPoint}\t", 
+                  f"individualA {individualAMaxDepthGenome[:maxDepthCPoint]} {individualAMaxDepthGenome[maxDepthCPoint:]}\t",
+                  f"individualB {individualBMaxDepthGenome[:maxDepthCPoint]} {individualBMaxDepthGenome[maxDepthCPoint:]}\t",
+                  f"childA maxDepth genome: {childAMaxDepthGenome}\tchildB maxDepth genome: {childBMaxDepthGenome}")
+
+
+            # minLabels genome crossover
+            minLabelsCPoint = random.randrange(0, self.minLabelsGenomeLength)
+
+            individualAMinLabelsGenome = individualA[0][self.maxDepthGenomeLength:self.maxDepthGenomeLength + self.minLabelsGenomeLength]
+            individualBMinLabelsGenome = individualB[0][self.maxDepthGenomeLength:self.maxDepthGenomeLength + self.minLabelsGenomeLength]
+
+            childAMinLabelsGenome = individualAMinLabelsGenome[:minLabelsCPoint] + individualBMinLabelsGenome[minLabelsCPoint:]
+            childBMinLabelsGenome = individualBMinLabelsGenome[:minLabelsCPoint] + individualAMinLabelsGenome[minLabelsCPoint:]
+
+            print(f"minLabels crossover point: {minLabelsCPoint}\t", 
+                  f"individualA {individualAMinLabelsGenome[:minLabelsCPoint]} {individualAMinLabelsGenome[minLabelsCPoint:]}\t",
+                  f"individualB {individualBMinLabelsGenome[:minLabelsCPoint]} {individualBMinLabelsGenome[minLabelsCPoint:]}\t",
+                  f"childA minLabels genome: {childAMinLabelsGenome}\tchildB minLabels genome: {childBMinLabelsGenome}")
+
+            # maxImpurity genome crossover
+            maxImpurityCPoint = random.randrange(0, 12)
+
+            individualAMaxImpurityGenome = individualA[0][self.maxDepthGenomeLength + self.minLabelsGenomeLength:]
+            individualBMaxImpurityGenome = individualB[0][self.maxDepthGenomeLength + self.minLabelsGenomeLength:]
+
+            childAMaxImpurityGenome = individualAMaxImpurityGenome[:maxImpurityCPoint] + individualBMaxImpurityGenome[maxImpurityCPoint:]
+            childBMaxImpurityGenome = individualBMaxImpurityGenome[:maxImpurityCPoint] + individualAMaxImpurityGenome[maxImpurityCPoint:]
+            
+            print(f"maxImpurity crossover point: {maxImpurityCPoint}\t", 
+                  f"individualA {individualAMaxImpurityGenome[:maxImpurityCPoint]} {individualAMaxImpurityGenome[maxImpurityCPoint:]}\t",
+                  f"individualB {individualBMaxImpurityGenome[:maxImpurityCPoint]} {individualBMaxImpurityGenome[maxImpurityCPoint:]}\t",
+                  f"childA maxImpurity genome: {childAMaxImpurityGenome}\tchildB maxImpurity genome: {childBMaxImpurityGenome}")
+
+            childA.append(childAMaxDepthGenome + childAMinLabelsGenome + childAMaxImpurityGenome)
+            childB.append(childBMaxDepthGenome + childBMinLabelsGenome + childBMaxImpurityGenome)
+
+            return childA, childB
+            
+
+    def _mate(self, mates):
+        children = []
+        for i in range(0, len(mates), 2):
+            children_ = list(self._crossover(mates[i], mates[i+1])) # again, passed as arrays of arrays (genes, fitness)
+            [children.append(child) for child in children_]
+            
+
+        return children
+
+
+    def _mutate(self, individual):
+        ind_list = list(individual[0])
+        index = random.randint(0, self.maxDepthGenomeLength + self.minLabelsGenomeLength + 12 - 1)
+        ind_list[index] = str(1 - int(ind_list[index]))
+        individual[0] = ''.join(ind_list)
+
+
+    def _mutatePopulation(self, population):
+        for ind in population:
+            if random.random() <= self.mutationChance:
+                self._mutate(ind)
 
     # genome crossover via k-point crossover. k-points may be positioned between genomes for genome-specific (genomic) crossover
     # or randomly for individual (holistic) crossover
