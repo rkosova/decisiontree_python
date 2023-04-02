@@ -198,7 +198,7 @@ class Tree:
         return d
     
 
-    def toJSON(self, fileName = datetime.today().strftime('%Y%m%d_%H%M%S') + ".json"): 
+    def toJSON(self, fileName = datetime.today().strftime('%Y%m%d%H%M%S') + ".json"): 
         d = self._toDict(self.root)
         with open(fileName, "w") as outfile:
             json.dump(d, outfile, cls=NpEncoder)
@@ -302,11 +302,17 @@ class HyperTuner:
             
             self.generations += 1
 
-        mmaxDepth = int(self.fittest[0][:self.maxDepthGenomeLength], 2)
-        mminLabels = int(self.fittest[0][self.maxDepthGenomeLength:self.maxDepthGenomeLength + self.minLabelsGenomeLength], 2)
-        mmaxImpurity = self._decodeTwelveBitImpurity(self.fittest[0][self.maxDepthGenomeLength + self.minLabelsGenomeLength:])
+        fittestMaxDepth = int(self.fittest[0][:self.maxDepthGenomeLength], 2)
+        fittestMinLabels = int(self.fittest[0][self.maxDepthGenomeLength:self.maxDepthGenomeLength + self.minLabelsGenomeLength], 2)
+        fittestMaxImpurity = self._decodeTwelveBitImpurity(self.fittest[0][self.maxDepthGenomeLength + self.minLabelsGenomeLength:])
 
-        tree = Tree(self.X_train, self.y_train, mmaxDepth, mminLabels, mmaxImpurity)
+        s = f"Fittest individual after {self.generations} generations has an accuracy of {ind[1]}."
+
+        print("*" * (len(s) + 2))
+        print("*" + s + "*")
+        print("*" * (len(s) + 2))
+
+        tree = Tree(self.X_train, self.y_train, fittestMaxDepth, fittestMinLabels, fittestMaxImpurity)
 
         tree.toJSON()
 
