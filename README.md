@@ -185,7 +185,7 @@ The `HyperTuner` class will generate a Tree with genetically tuned hyperparamete
 - ```nIndividuals``` Number of individuals per generation (HAS TO BE EVEN FOR NOW)
 - ```targetFitness``` Fitness (accuracy) that will terminate genetic tuning
 - ```maxGenerations``` Maximum number of generations
-- ```crossoverOperation``` Genetic crossover generating to be used for mating (```'genomic'``` only supported for now)
+- ```crossoverOperation``` Genetic crossover generating to be used for mating (```'genomic'``` | ```'holistic'```)
 - ```mutationChance``` Chance that individual is mutated
 
 #### HyperTuning a tree

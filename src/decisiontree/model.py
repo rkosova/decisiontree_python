@@ -49,7 +49,7 @@ class Tree:
 
     def _train(self, data, depth = 0):
         self.depth = depth if depth > self.depth else self.depth + 0
-        if not self.ensembled:
+        if not self.ensembled and self.depth > 0:
             print(f"\rTraining \t{ (self.depth/self.maxDepth) * 100:.1f}%",
                 f" |{ (int(50 * ((self.depth/self.maxDepth)))) * '='}{ (50 - int(50 * (self.depth/self.maxDepth))) * '.' }|",
                 f"\tDepth { self.depth }/{ self.maxDepth }", end="")
@@ -306,7 +306,7 @@ class HyperTuner:
         fittestMinLabels = int(self.fittest[0][self.maxDepthGenomeLength:self.maxDepthGenomeLength + self.minLabelsGenomeLength], 2)
         fittestMaxImpurity = self._decodeTwelveBitImpurity(self.fittest[0][self.maxDepthGenomeLength + self.minLabelsGenomeLength:])
 
-        s = f"Fittest individual after {self.generations} generations has an accuracy of {ind[1]}."
+        s = f"Fittest individual from the {self.generations - 1} generations has an accuracy of {ind[1]}."
 
         print("*" * (len(s) + 2))
         print("*" + s + "*")
@@ -366,7 +366,7 @@ class HyperTuner:
 
 
     def _tournamentSelection(self, population):
-        # SELECTION WITH REPLACEMENT. LEADS TO LESS DIVERSE SMALL POPULATIONS
+        # SELECTION WITH REPLACEMENT. LEADS TO LESS DIVERSE SMALL POPULATIONS (smaller populations more easily converge to certain solutions)
         mates = []
 
         while len(mates) < len(population):
@@ -411,8 +411,22 @@ class HyperTuner:
 
             childA.append(childAMaxDepthGenome + childAMinLabelsGenome + childAMaxImpurityGenome)
             childB.append(childBMaxDepthGenome + childBMinLabelsGenome + childBMaxImpurityGenome)
+        elif self.crossoverOperation == 'holistic':
+            individualAGeneticMaterial = individualA[0]
+            individualBGeneticMaterial = individualB[0]
 
-            return childA, childB
+            crossoverPoint = random.randrange(len(individualAGeneticMaterial))
+
+            _childA = individualAGeneticMaterial[:crossoverPoint] + individualBGeneticMaterial[crossoverPoint:]
+            _childB = individualBGeneticMaterial[:crossoverPoint] + individualAGeneticMaterial[crossoverPoint:]
+
+            childA.append(_childA)
+            childB.append(_childB)
+
+        return childA, childB
+
+
+
             
 
     def _mate(self, mates):
