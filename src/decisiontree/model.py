@@ -130,11 +130,10 @@ class Tree:
         # TODO
         # - Refactor so it can also use  single unpacked itertuple datapoint so forest doesnt need its own copy of _getPred lol
         y_pred = pd.Series(dtype=float)
-
+        fe = X_test.columns
         for idx, *dataPoint in X_test.itertuples():
             prediction = self._getPred(dataPoint, self.root)
             y_pred.at[idx] = prediction
-        
         return y_pred
     
 
@@ -144,14 +143,15 @@ class Tree:
             return node.value
         
         direction = node.optimalSplitDirection
+        nodeFeature = list(self.X_train.columns).index(node.feature)
 
         if direction == "left":
-            if dataPoint[node.feature] <= node.value:
+            if dataPoint[nodeFeature] <= node.value:
                 pred = self._getPred(dataPoint, node.left)
             else:
                 pred =self._getPred(dataPoint, node.right)
         else:
-            if dataPoint[node.feature] >= node.value:
+            if dataPoint[nodeFeature] >= node.value:
                 pred = self._getPred(dataPoint, node.left)
             else:
                 pred = self._getPred(dataPoint, node.right)
