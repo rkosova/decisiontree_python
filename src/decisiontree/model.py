@@ -17,9 +17,10 @@ class Tree:
                  read = False,
                  hyperTuned = False) -> None:
         
+        self.read = read
         #data
         if not read:
-            self.X_train = X_train # remove header from here for _getPred, store it in some variable for printTree
+            self.X_train = X_train
             self.y_train = y_train
             self.data = pd.concat((X_train, y_train), axis=1)
             # hyperparameters
@@ -130,7 +131,8 @@ class Tree:
         # TODO
         # - Refactor so it can also use  single unpacked itertuple datapoint so forest doesnt need its own copy of _getPred lol
         y_pred = pd.Series(dtype=float)
-        fe = X_test.columns
+        if self.read:
+            self.X_train = X_test
         for idx, *dataPoint in X_test.itertuples():
             prediction = self._getPred(dataPoint, self.root)
             y_pred.at[idx] = prediction
