@@ -19,7 +19,7 @@ class Tree:
         
         #data
         if not read:
-            self.X_train = X_train
+            self.X_train = X_train # remove header from here for _getPred, store it in some variable for printTree
             self.y_train = y_train
             self.data = pd.concat((X_train, y_train), axis=1)
             # hyperparameters
@@ -52,7 +52,7 @@ class Tree:
         if not self.ensembled and self.depth > 0:
             print(f"\rTraining \t{ (self.depth/self.maxDepth) * 100:.1f}%",
                 f" |{ (int(50 * ((self.depth/self.maxDepth)))) * '='}{ (50 - int(50 * (self.depth/self.maxDepth))) * '.' }|",
-                f"\tDepth { self.depth }/{ self.maxDepth }", end="")
+                f"\tDepth { self.depth }/{ self.maxDepth }  minLabels: {self.minLabels}  maxImpurity: {self.maxImpurity}", end="")
 
         dataImpurity = gini(getClassDistribution(data.iloc[:, -1]))
         split = self._findSplit(data)
